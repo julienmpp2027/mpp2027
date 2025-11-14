@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Accueil - Mon Super Blog
+{% endblock title %}
+
+{% block content %}
+    <h1>Bienvenue sur Mon Super Blog</h1>
+    <hr>
+
+    <!--
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    --------- ---------------------------------------------------AFFICHE LES X DERNIERS ARTICLES ---------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
+    {% if categorie %}
+        <h2>Articles dans la catégorie : {{ categorie.nom }}</h2>
+        <p><a href="{% url 'blog:liste-articles' %}">Voir tous les articles</a></p>
+    {% else %}
+        <h2>Nos derniers articles :</h2>
+    {% endif %}
+
+    {% for article in articles %}
+        <article>
+            <h3>
+                <a href="{% url 'blog:detail-article' slug=article.slug %}">
+                    {{ article.titre }}
+                </a>
+            </h3>
+
+            <p>
+                <em>
+                    Écrit par
+                    {% if article.auteur %}
+                        <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}">
+                            {{ article.auteur.pseudo|default:article.auteur.email }}
+                        </a>
+                    {% else %}
+                        Utilisateur supprimé
+                    {% endif %}
+                    le {{ article.date_creation|date:"d F Y" }}
+                </em>
+            </p>
+            <p>
+                {{ article.contenu|striptags|truncatewords:50 }}
+            </p>
+
+            {% if article.categories.all %}
+                <p>
+                    <strong>Catégories :</strong>
+                    {% for cat in article.categories.all %}
+                        <a href="{% url 'blog:articles-par-categorie' slug_categorie=cat.slug %}">
+                            {{ cat.nom }}
+                        </a>
+                        {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+            {% endif %}
+            <a href="{% url 'blog:detail-article' slug=article.slug %}">
+                Lire la suite
+            </a>
+        </article>
+        <hr>
+
+    {% empty %}
+        <p>Oups, il n'y a encore aucun article publié !</p>
+    {% endfor %}
+
+
+    <!--
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------ AFFICHE LE LIEN POUR PAGINATION ------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+
+    <div class="pagination">
+        <span class="step-links">
+
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">&laquo; Précédent</a>
+            {% else %}
+                <span class="disabled">&laquo; Précédent</span>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Suivant &raquo;</a>
+            {% else %}
+                <span class="disabled">Suivant &raquo;</span>
+            {% endif %}
+
+        </span>
+    </div>
+{% endblock content %}

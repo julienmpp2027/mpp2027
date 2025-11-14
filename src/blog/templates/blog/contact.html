@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Contactez-nous{% endblock title %}
+
+{% block content %}
+    <h2>Contactez-nous</h2>
+    <p>Une question, une remarque ? N'hésitez pas à nous écrire.</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 15px;">
+            {{ form.nom.label_tag }}
+            {{ form.nom }}
+            {% if form.nom.errors %}<div style="color: red;">{{ form.nom.errors }}</div>{% endif %}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}<div style="color: red;">{{ form.email.errors }}</div>{% endif %}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            {{ form.sujet.label_tag }}
+            {{ form.sujet }}
+            {% if form.sujet.errors %}<div style="color: red;">{{ form.sujet.errors }}</div>{% endif %}
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            {{ form.message.label_tag }}
+            {{ form.message }}
+            {% if form.message.errors %}<div style="color: red;">{{ form.message.errors }}</div>{% endif %}
+        </div>
+
+        <button type="submit">Envoyer le message</button>
+    </form>
+{% endblock content %}

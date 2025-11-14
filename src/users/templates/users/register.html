@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - Mon Super Blog{% endblock title %}
+
+{% block content %}
+    <h2>Inscription</h2>
+    <p>Créez votre compte pour pouvoir commenter !</p>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">S'inscrire</button>
+    </form>
+
+{% endblock content %}

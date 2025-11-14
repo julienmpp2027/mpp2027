@@ -1,0 +1,12 @@
+<!--GABARIT DE L'EMAIL-->
+
+<p>Vous avez reçu un nouveau message de contact depuis votre blog.</p>
+<hr>
+<p><strong>De :</strong> {{ nom }}</p>
+<p><strong>Email :</strong> {{ email_expediteur }}</p>
+<p><strong>Sujet :</strong> {{ sujet }}</p>
+<hr>
+<p><strong>Message :</strong></p>
+<p style="border-left: 3px solid #ccc; padding-left: 10px; font-style: italic;">
+    {{ message|linebreaks }}
+</p>

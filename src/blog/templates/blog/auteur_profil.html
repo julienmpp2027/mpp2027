@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil de {{ auteur.pseudo|default:auteur.email }}{% endblock title %}
+
+{% block content %}
+
+    <section class="profil-header" style="display: flex; align-items: center; margin-bottom: 20px;">
+        {% if auteur.profile_picture %}
+            <img src="{{ auteur.profile_picture.url }}" alt="Photo de {{ auteur.pseudo }}"
+                 style="max-width: 150px; height: 150px; border-radius: 50%; margin-right: 20px; object-fit: cover;">
+        {% else %}
+            <div style="width: 150px; height: 150px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-size: 3em; color: #aaa;">
+                ?
+            </div>
+        {% endif %}
+
+        <div>
+            <h1>{{ auteur.pseudo|default:auteur.email }}</h1>
+            <p>Membre depuis {{ auteur.date_joined|date:"F Y" }}</p>
+
+            {% if auteur.description %}
+                <p><em>"{{ auteur.description }}"</em></p>
+            {% endif %}
+        </div>
+    </section>
+
+    <hr>
+
+    <section class="profil-articles">
+
+        {% if is_owner %}
+            <h2>Vos articles (Brouillons et Publiés)</h2>
+        {% else %}
+            <h2>Articles écrits par {{ auteur.pseudo|default:"lui" }}</h2>
+        {% endif %}
+
+
+        {% for article in articles_auteur %}
+            <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #eee;">
+
+                {% if article.statut == 'DRAFT' %}
+                    <strong style="color: #orange;">(BROUILLON)</strong>
+                {% endif %}
+
+                <a href="{{ article.get_absolute_url }}">{{ article.titre }}</a>
+                <br>
+                <small>Publié le {{ article.date_creation|date:"d M Y" }}</small>
+
+                {% if article.statut == 'DRAFT' %}
+                    [ <a href="{% url 'blog:article-update' slug=article.slug %}">Modifier mon brouillon</a> ]
+                {% endif %}
+
+            </div>
+        {% empty %}
+            {% if is_owner %}
+                 <p>Vous n'avez pas encore écrit d'article.
+                 <a href="{% url 'admin:blog_article_add' %}">Commencez ici !</a></p>
+            {% else %}
+                <p>{{ auteur.pseudo|default:"Cet utilisateur" }} n'a pas encore publié d'article.</p>
+            {% endif %}
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section class="profil-commentaires">
+        <h2>Commentaires récents</h2>
+
+        {% for commentaire in commentaires_auteur %}
+            <div style="padding: 10px; border: 1px solid #eee; margin-bottom: 10px;">
+                <p>Sur l'article <a href="{{ commentaire.article.get_absolute_url }}#commentaire-{{ commentaire.pk }}">
+                    {{ commentaire.article.titre }}</a> :
+                </p>
+                <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; font-style: italic;">
+                    {{ commentaire.contenu|truncatewords:30 }}
+                </blockquote>
+            </div>
+        {% empty %}
+            <p>{{ auteur.pseudo|default:"Cet utilisateur" }} n'a pas encore commenté.</p>
+        {% endfor %}
+    </section>
+
+{% endblock content %}

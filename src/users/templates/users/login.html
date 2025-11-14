@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Connexion - Mon Super Blog{% endblock title %}
+
+{% block content %}
+    {% load socialaccount %}
+    <h2>Connexion</h2>
+
+    <div class="social-login" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #eee; text-align: center;">
+        <p>Connexion rapide via Google :</p>
+
+        <a href="{% provider_login_url 'google' %}" style="text-decoration: none; padding: 10px 15px; background: #4285F4; color: white; border-radius: 5px;">
+            <i class="fab fa-google"></i> Se connecter avec Google
+        </a>
+    </div>
+    <hr style="margin: 20px 0;">
+    <p style="text-align: center;">...ou connectez-vous avec votre email :</p>
+
+    {% if form.errors %}
+        <p style="color: red;">
+            Votre adresse email ou votre mot de passe est incorrect. 
+            Veuillez réessayer.
+        </p>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        {{ form.as_p }}
+        
+        <button type="submit">Se connecter</button>
+    </form>
+
+    <p style="margin-top: 15px;">
+        <a href="{% url 'users:password_reset' %}">Mot de passe oublié ?</a>
+    </p>
+
+    {% endblock content %}

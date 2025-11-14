@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmer la suppression{% endblock title %}
+
+{% block content %}
+    <h2>Êtes-vous absolument sûr ?</h2>
+
+    <p style="font-size: 1.2em; color: #cc0000;">
+        Ceci est une action <strong>IRRÉVERSIBLE</strong>.
+    </p>
+    
+    <p>
+        Vous êtes sur le point de supprimer définitivement votre compte
+        "<strong>{{ user.pseudo|default:user.email }}</strong>".
+    </p>
+    
+    <p>
+        Tous vos commentaires et articles (s'il y en a) ne vous seront plus attribués.
+        Vous ne pourrez plus vous connecter avec ce compte.
+    </p>
+
+    <form method="POST" style="margin-top: 20px;">
+        {% csrf_token %}
+        
+        <a href="{% url 'users:profile' %}" style="margin-right: 20px;">
+            Annuler (Ouf !)
+        </a>
+        
+        <button type="submit" style="background: #cc0000; color: white; border: none; padding: 10px 15px; font-weight: bold; cursor: pointer;">
+            Oui, je suis sûr. Supprimez mon compte.
+        </button>
+    </form>
+
+{% endblock content %}

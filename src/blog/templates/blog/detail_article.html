@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+
+
+{% block extra_meta %}
+    <meta property="og:title" content="{{ article.titre }}">
+    <meta property="og:description" content="{{ article.contenu|striptags|truncatewords:30 }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ absolute_url }}">
+    {% if absolute_image_url %}
+    <meta property="og:image" content="{{ absolute_image_url }}">
+    {% endif %}
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ article.titre }}">
+    <meta name="twitter:description" content="{{ article.contenu|striptags|truncatewords:30 }}">
+    {% if absolute_image_url %}
+        <meta name="twitter:image" content="{{ absolute_image_url }}">
+    {% endif %}
+{% endblock extra_meta %}
+
+
+{% block title %}
+    Accueil - Mon Super Article
+{% endblock title %}
+
+{% block content %}
+    {% load hitcount_tags %}
+
+    {% if article.statut == 'DRAFT' and user == article.auteur %}
+        <div class="draft-warning" style="padding: 15px; border: 2px solid #orange; background: #fff8e1; color: #8a6d3b; margin-bottom: 20px;">
+            <strong>Ceci est un BROUILLON.</strong>
+            Vous seul(e) pouvez voir cet article. Il n'est pas visible par le public.
+            <a href="{% url 'blog:article-update' slug=article.slug %}">
+                Modifier ce brouillon
+            </a>
+            {% if user.is_staff %}
+    |           <a href="{% url 'admin:blog_article_change' article.pk %}">Publier (Admin)</a>
+            {% endif %}
+        </div>
+    {% endif %}
+    <!-- -------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------ AFFICHAGE DE L'ARTICLE ------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------ -->
+    <article>
+        <h1>{{ article.titre }}</h1>
+        <p>
+            <em>
+                Écrit par
+                {% if article.auteur %}
+                    <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}">
+                        {{ article.auteur.pseudo|default:article.auteur.email }}
+                    </a>
+                {% else %}
+                    Utilisateur supprimé
+                {% endif %}
+                le {{ article.date_creation|date:"d F Y" }}
+                <p>
+                <span id="hitcount-display">
+                    {% get_hit_count for article as hits %}
+                    {{ hits|default:0 }}
+
+                    {% if hits == 1 %}
+                        vue
+                    {% else %}
+                        vues
+                    {% endif %}
+                </span></p>
+            </em>
+        </p>
+
+        {% if article.categories.all %}
+            <p>
+                <strong>Catégories :</strong>
+                {% for cat in article.categories.all %}
+                    <a href="{% url 'blog:articles-par-categorie' slug_categorie=cat.slug %}">
+                        {{ cat.nom }}
+                    </a>
+                    {% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        {% endif %}
+        {% if article.image_banniere %}
+            <img src="{{ article.image_banniere.url }}" alt="Bannière" style="max-width: 600px;">
+        {% endif %}
+
+        <!-- LIEN VERS FACEBOOK ET TWITTER -->
+     <div class="social-share" style="margin-top: 15px; margin-bottom: 15px;">
+            <strong>Partager :</strong>
+
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ absolute_url|urlencode }}" target="_blank" rel="noopener noreferrer" title="Partager sur Facebook" style="text-decoration:none; color: #1877F2; font-size: 1.5em; margin: 0 5px;">
+                <i class="fab fa-facebook"></i>
+            </a>
+
+            <a href="https://twitter.com/intent/tweet?url={{ absolute_url|urlencode }}&text={{ article.titre|urlencode }}" target="_blank" rel="noopener noreferrer" title="Partager sur X" style="text-decoration:none; color: #1DA1F2; font-size: 1.5em; margin: 0 5px;">
+                <i class="fab fa-x-twitter"></i>
+            </a>
+
+            <button id="native-share-button" title="Partager..." style="background:none; border:none; cursor:pointer; color: #555; font-size: 1.5em; margin: 0 5px; vertical-align: middle;">
+                <i class="fas fa-share-alt"></i>
+            </button>
+
+        </div>
+
+        <hr>
+
+        <div>
+            {{ article.contenu|safe }}
+        </div>
+    </article>
+
+    <hr>
+
+    <!-- -------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------ LIEN VERS LISTE DES ARTICLES ------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------ -->
+    <a href="{% url 'blog:liste-articles' %}">Retour à la liste</a>
+
+    <!-- -------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------ AFFICHAGE DES COMMENTAIRES-- ------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------ -->
+    <section class="commentaires">
+        <h2>Commentaires ({{ commentaires.count }})</h2>
+
+        {% for commentaire in commentaires %}
+            <div class="commentaire" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <p>
+                    <strong>
+                        {% if commentaire.auteur %}
+                            <a href="{% url 'blog:auteur-profil' pk=commentaire.auteur.pk %}">
+                                {{ commentaire.auteur.pseudo|default:commentaire.auteur.email }}
+                            </a>
+                        {% else %}
+                            Utilisateur supprimé
+                        {% endif %}
+                    </strong>
+                    <small>le {{ commentaire.date_creation|date:"d/m/Y H:i" }}</small>
+                </p>
+                <p>{{ commentaire.contenu|linebreaks }}</p>
+            </div>
+        {% empty %}
+            <p>Soyez le premier à commenter cet article !</p>
+        {% endfor %}
+    </section>
+    <hr>
+
+    <section class="nouveau-commentaire">
+        <h2>Ajouter un commentaire</h2>
+
+        {% if user.is_authenticated %}
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                {{ comment_form.as_p }}
+
+                <button type="submit">Envoyer</button>
+            </form>
+
+        {% else %}
+            <p>
+                Vous devez être
+                <a href="#">connecté</a> pour laisser un commentaire.
+            </p>
+        {% endif %}
+
+    </section>
+    <hr>
+
+    <script>
+    // On attend que la page soit chargée
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // On trouve notre bouton de partage
+        const shareButton = document.getElementById('native-share-button');
+
+        // 1. On vérifie si le navigateur supporte le "Web Share API"
+        if (navigator.share) {
+
+            // S'il le supporte, on ajoute un écouteur de clic
+            shareButton.addEventListener('click', async () => {
+                try {
+                    // On appelle l'API de partage
+                    await navigator.share({
+                        title: '{{ article.titre|escapejs }}',
+                        text: '{{ article.contenu|striptags|truncatewords:20|escapejs }}',
+                        url: '{{ absolute_url }}'
+                    });
+                    console.log('Article partagé avec succès !');
+                } catch (err) {
+                    console.error('Erreur lors du partage :', err);
+                }
+            });
+
+        } else {
+            // 2. Si le navigateur ne le supporte pas
+            // (ex: Firefox sur ordinateur, vieux navigateurs)
+            // on cache le bouton.
+            console.warn('Web Share API non supporté.');
+            shareButton.style.display = 'none';
+        }
+    });
+    </script>
+{% endblock content %}

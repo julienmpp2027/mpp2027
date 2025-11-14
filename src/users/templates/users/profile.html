@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil{% endblock title %}
+
+{% block content %}
+    <h2>Mon Profil</h2>
+    <p>Modifiez vos informations publiques ici.</p>
+
+    {% if user.profile_picture %}
+        <div style="margin-bottom: 20px;">
+            <h3>Photo de profil actuelle :</h3>
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.pseudo|default:user.email }}" style="max-width: 150px; height: auto; border-radius: 5px;">
+        </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        <!-- cet enctype est le seul moyen pour le navigateur de dire
+         à Django : "Attention, je n'envoie pas que du texte, j'envoie aussi un fichier (request.FILES) !".-->
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">Mettre à jour</button>
+    </form>
+
+
+    <!--  LIEN POUR SUPPRIMER UN UTILISATEUR  -->
+    <hr style="margin-top: 30px;">
+
+    <div class="danger-zone" style="margin-top: 20px; padding: 15px; border: 1px solid #cc0000; background: #fff0f0;">
+        <h3>Zone de danger</h3>
+        <p>Supprimer votre compte est une action irréversible. Tout votre profil sera effacé.</p>
+        <a href="{% url 'users:profile-delete' %}" style="color: #cc0000; font-weight: bold;">
+            Je veux supprimer mon compte
+        </a>
+    </div>
+
+{% endblock content %}

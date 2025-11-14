@@ -1,0 +1,22 @@
+# Secrets
+.env
+*.env
+
+# Environnement Python
+venv/
+.venv/
+
+# Fichiers de BDD locale
+db.sqlite3
+*.sqlite3
+
+# Fichiers "compilés" de Python
+__pycache__/
+*.pyc
+
+# Fichiers uploadés par les utilisateurs
+# (Ils iront sur un service comme S3, pas sur Git)
+mediafiles/
+
+# Fichiers de Pycharm
+.idea/

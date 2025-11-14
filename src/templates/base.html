@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}Mon Super Blog{% endblock title %}
+    </title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- LIEN POUR LES ICONES-->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    />
+
+    <!-- pour inclure de nouvelles balise meta (par exemple pour le partage)-->
+    {% block extra_meta %}
+    {% endblock extra_meta %}
+
+    </head>
+    <body>
+        <nav class="navbar">
+
+            <div class="navbar-left">
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-button-outline">
+                        <i class="fas fa-bars"></i>
+                        <span style="margin-left: 8px;">Menu</span>
+                    </a>
+
+                    <div class="nav-dropdown-content">
+                        {% for link in main_nav_links %}
+                            <a href="{{ link.url }}">{{ link.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="navbar-center">
+                <a href="{% url 'blog:liste-articles' %}" class="nav-logo">
+
+                <img src="{% static 'img/logo_blanc.png' %}"
+                    alt="MPP2027 Logo"
+                    class="nav-logo-img">
+
+                </a>
+            </div>
+
+            <div class="navbar-right">
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'blog:auteur-profil' pk=user.pk %}" class="navbar-profile-link">
+
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Profil" class="navbar-profile-pic">
+                        {% else %}
+                            <i class="fas fa-user-circle navbar-profile-pic default-icon"></i>
+                        {% endif %}
+
+                        <span>{{ user.pseudo|default:user.email }}</span>
+                    </a>
+
+                    <form action="{% url 'users:logout' %}" method="POST" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-button-logout" title="Se déconnecter">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="nav-button-solid">Connexion</a>
+                {% endif %}
+
+            </div>
+        </nav>
+        <div class="container">
+
+            <main>
+                {% if messages %}
+                    <ul class="messages" style="list-style-type: none; padding: 0;">
+                        {% for message in messages %}
+                            <li style="padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; background: #f9f9f9; color: #333;">
+                                {{ message }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% block content %}
+                {% endblock content %}
+            </main>
+
+        </div>
+
+<!-- ============================================================================================================== -->
+<!-- ===========================              FOOTER                  ============================================= -->
+    <footer class="main-footer">
+        <div class="footer-content">
+
+            <div class="footer-column">
+                <h4>À propos de mpp2027</h4>
+                <p style="opacity: 0.8;">
+                    Un blog pour partager des idées, des programmes et
+                    des réactions sur l'actualité.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <h4>Liens rapides</h4>
+                <ul>
+                    <li><a href="{% url 'blog:liste-articles' %}">Accueil</a></li>
+                    <li><a href="{% url 'blog:contact' %}">Me Contacter</a></li>
+
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'blog:article-create' %}">Écrire un article</a></li>
+                    {% endif %}
+
+                    </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Suivez-moi</h4>
+                <div class="footer-socials">
+                    <a href="https://x.com/mpp2027" title="X (Twitter)" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-x-twitter"></i>
+                    </a>
+                    <a href="#" title="LinkedIn" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" title="GitHub" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            &copy; 2025 - mpp2027 - mon p'tit programme
+        </div>
+    </footer>
+    </body>
+</html>
+

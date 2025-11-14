@@ -1,0 +1,335 @@
+/* Fichier : static/css/style.css */
+
+/* =============================================================================
+                     VARIABLES DE COULEUR
+   ============================================================================= */
+:root {
+    /* On définit vos couleurs ici. Changez-les et tout le site suivra. */
+    --couleur-principale: #1C3047; /* Le bleu*/
+    --couleur-secondaire: #ffffff; /* Le blanc */
+
+    /* Variables sémantiques (plus facile à lire) */
+    --texte-sur-bleu: var(--couleur-secondaire);
+    --texte-sur-blanc: var(--couleur-principale);
+    --fond-du-site: #F2F2F2;
+}
+
+
+/* =============================================================================
+                                      LE BODY
+   ============================================================================= */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+
+    margin: 0;
+    padding: 0;
+    background-color: var(--fond-du-site);
+
+
+    /* --- Les propriétés pour l'image de fond ---
+    background-image: url('/static/img/background.jpg');  L'URL de votre image
+    background-size: cover;           L'image couvrira toujours tout l'écran
+    background-position: center center;  L'image sera centrée
+    background-attachment: fixed;     L'image reste fixe quand on scroll
+    background-repeat: no-repeat;     Évite que l'image ne se répète
+     --- Fin des propriétés de l'image de fond ---*/
+}
+
+
+/* =============================================================================
+                       LE CONTENEUR (qui centre le contenu)
+   ============================================================================= */
+.container {
+    /* C'est LUI qui centre votre blog, mais PAS la navbar */
+    max-width: 800px;
+    margin: 60px auto; /* 20px d'espace en haut/bas, centré automatiquement */
+    padding: 20px;
+    background-color: var(--couleur-secondaire); /* Le fond blanc pour le contenu */
+    border-radius: 8px; /* Coins légèrement arrondis */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Une ombre discrète */
+}
+
+
+/* =============================================================================
+                        LA NAVBAR
+   ============================================================================= */
+
+/* Le conteneur principal (prend 100% de la largeur) */
+.navbar {
+    display: flex;             /* LA MAGIE : active le mode "Flexbox" */
+    justify-content: space-between; /* Pousse les 3 blocs enfants aux extrémités */
+    align-items: center;       /* Aligne tout joliment au centre (verticalement) */
+
+    background-color: var(--couleur-principale); /* Utilise votre variable */
+    color: var(--texte-sur-bleu);            /* Utilise votre variable  */
+
+    padding: 10px 20px;        /* 10px en haut/bas, 20px sur les côtés */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Petite ombre sous la barre */
+}
+
+/* Style général pour tous les liens dans la navbar */
+.navbar a {
+    color: var(--texte-sur-bleu); /* Liens en blanc */
+    text-decoration: none;        /* Pas de soulignement moche */
+    display: flex;                /* Permet d'aligner les icônes et le texte */
+    align-items: center;          /* Centre verticalement icône et texte */
+}
+
+/* Les 3 blocs qui composent la navbar */
+.navbar-left,
+.navbar-center,
+.navbar-right {
+    display: flex;         /* Eux aussi sont en Flexbox... */
+    align-items: center;   /* ...pour aligner leurs propres enfants */
+
+    /* On leur donne une "base" pour le 'space-between' du parent */
+    /* (flex: 1 signifie "prend 1/3 de la place") */
+    flex: 1;
+}
+
+/* --- Colonne de gauche (Menu) --- */
+.navbar-left {
+    justify-content: flex-start; /* Aligne le contenu à gauche */
+}
+.nav-button-outline {
+    padding: 8px 12px;
+    border: 1px solid var(--texte-sur-bleu);
+    border-radius: 20px;
+    font-weight: bold;
+}
+.nav-button-outline:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Effet de survol léger */
+}
+
+/* --- Colonne du centre (Logo) --- */
+.navbar-center {
+    justify-content: center; /* Aligne le logo au centre parfait */
+}
+.nav-logo {
+    text-decoration: none;
+}
+.nav-logo-img {
+    height: 55px; /* C'est la HAUTEUR qui contrôle tout */
+    width: auto;  /* Le navigateur calculera la largeur automatiquement */
+
+    /* Juste pour que ça ne colle pas au texte sur mobile */
+    margin: 0;
+    padding: 0;
+    /* Pour que la bordure de survol ne déplace pas le logo */
+    /* box-sizing: border-box; */
+    /* border: 2px solid transparent; */ /* Bordure transparente par défaut */
+    /* On ajoute un 'outline' transparent pour réserver l'espace */
+    outline: 2px solid transparent; /* Contour transparent par défaut */
+    outline-offset: 5px; /* Décalage de l'outline par rapport à l'image */
+
+    border-radius: 10px; /* ON APPLIQUE LE BORDER-RADIUS DIRECTEMENT À L'IMAGE */
+    transition: all 0.2s ease-in-out; /* Pour une transition douce */
+    transform: translateY(-2px); /* Déplace l'image de 5px vers le haut */
+}
+.nav-logo:hover .nav-logo-img {
+    /* L'outline devient blanche et visible */
+    outline-color: var(--couleur-secondaire);
+    /* Une petite ombre blanche autour de l'image (optionnel mais très joli) */
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px) scale(1.10); /* On garde le décalage et le zoom */
+}
+/* --- Colonne de droite (Login/Profil) --- */
+.navbar-right {
+    justify-content: flex-end; /* Aligne le contenu à droite */
+}
+.navbar a.nav-button-solid {
+    background-color: var(--couleur-secondaire);
+    color: var(--texte-sur-blanc); /* Texte en bleu */
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+}
+.nav-button-solid:hover {
+    background-color: #eee;
+    transform: scale(1.05); /* Léger zoom au survol */
+}
+
+/* Le lien du profil (picto + nom) */
+.navbar-profile-link {
+    font-weight: bold;
+    margin-right: 15px; /* Espace avec le bouton logout */
+}
+.navbar-profile-link:hover {
+    text-decoration: underline;
+}
+
+/* La photo de profil ronde */
+.navbar-profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;   /* Magie : rend l'image ronde */
+    object-fit: cover; /* Évite que l'image ne soit déformée */
+    margin-right: 8px;
+    border: 1px solid var(--couleur-secondaire);
+}
+.navbar-profile-pic.default-icon {
+    font-size: 32px; /* Adapte l'icône Font Awesome */
+    border: none;
+}
+
+/* Le formulaire de déconnexion (on le cache) */
+.logout-form {
+    margin: 0; /* Enlève la marge par défaut du formulaire */
+}
+/* Le bouton de déconnexion (on le style comme une icône) */
+.nav-button-logout {
+    background: none;
+    border: none;
+    color: var(--texte-sur-bleu);
+    font-size: 1.2em; /* Rend l'icône un peu plus grande */
+    cursor: pointer;
+    opacity: 0.7;
+}
+.nav-button-logout:hover {
+    opacity: 1; /* L'icône devient vive au survol */
+}
+
+/* =============================================================================
+                       LE MENU DÉROULANT (CSS-ONLY)
+   ============================================================================= */
+
+/* Le conteneur principal du menu (pour la position) */
+.nav-dropdown {
+    position: relative; /* Permet aux enfants d'être positionnés 'absolute' */
+    display: inline-block;
+}
+
+/* On réutilise notre style de bouton (ne change pas) */
+/* .nav-button-outline { ... } */
+
+/* La "boîte" qui contient les liens (cachée par défaut) */
+.nav-dropdown-content {
+    display: none; /* Caché par défaut */
+    position: absolute; /* En "flottant" sous le bouton */
+    background-color: var(--couleur-secondaire); /* Fond blanc */
+    min-width: 200px; /* Largeur minimale */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 100; /* Doit être au-dessus de tout */
+    border-radius: 5px;
+}
+
+/* Quand on survole le conteneur... */
+.nav-dropdown:hover .nav-dropdown-content {
+    display: block; /* ...on affiche la boîte ! */
+}
+
+/* Les liens dans le menu déroulant */
+.nav-dropdown-content a {
+    color: var(--texte-sur-blanc); /* Liens en bleu */
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block; /* Chaque lien prend sa propre ligne */
+    border-bottom: 1px solid #f0f0f0; /* Ligne de séparation */
+    background-color: var(--couleur-secondaire); /* Fond blanc */
+    font-weight: 500; /* Un peu plus gras que la normale */
+}
+/* On enlève la bordure du dernier lien */
+.nav-dropdown-content a:last-child {
+    border-bottom: none;
+}
+.nav-dropdown-content a:hover {
+    background-color: #f9f9f9; /* Survol gris clair */
+}
+
+/* =============================================================================
+   STYLES POUR NOS FORMULAIRES
+   ============================================================================= */
+
+/* Style pour le champ "Titre" (et autres grands champs) */
+.form-control-large {
+    width: 100%;             /* Il prendra toute la largeur disponible */
+    padding: 10px 15px;      /* Plus d'espace intérieur (10px haut/bas, 15px côtés) */
+    font-size: 1.2em;        /* Police plus grande */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;  /* S'assure que le padding ne casse pas la largeur */
+}
+
+/* =============================================================================
+   6. LE FOOTER (Pied de page)
+   ============================================================================= */
+
+/* Le conteneur principal du footer (la bande bleue) */
+.main-footer {
+    /* On utilise vos variables pour rester cohérent */
+    background-color: var(--couleur-principale);
+    color: var(--texte-sur-bleu);
+
+    padding: 40px 20px; /* Plus d'espace que la navbar */
+    margin-top: 30px;  /* Espace entre le contenu et le footer */
+
+    /* S'assure qu'il passe au-dessus de l'overlay (comme la navbar) */
+    position: relative;
+    z-index: 2;
+}
+
+/* Centre le contenu du footer pour qu'il s'aligne avec le blog */
+.footer-content {
+    display: flex;             /* La magie des colonnes */
+    justify-content: space-between; /* Espace entre les colonnes */
+    gap: 30px;                 /* Espace *minimum* entre les colonnes */
+
+    max-width: 800px;  /* On garde la même largeur que .container */
+    margin: 0 auto;    /* On centre le tout */
+}
+
+/* Style pour chaque colonne */
+.footer-column {
+    flex: 1; /* Chaque colonne prend une part égale de l'espace */
+    min-width: 150px; /* Empêche les colonnes de devenir trop fines */
+}
+
+/* Titres des colonnes */
+.footer-column h4 {
+    color: var(--texte-sur-bleu);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Ligne de séparation */
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+/* Listes de liens dans le footer */
+.footer-column ul {
+    list-style: none; /* Pas de puces */
+    padding: 0;
+    margin: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 10px; /* Espace entre les liens */
+}
+
+/* Liens du footer */
+.footer-column a {
+    color: var(--texte-sur-bleu);
+    text-decoration: none;
+    opacity: 0.8; /* Légèrement transparents par défaut */
+    transition: opacity 0.2s ease-in-out;
+}
+
+.footer-column a:hover {
+    opacity: 1; /* Pleinement visibles au survol */
+    text-decoration: underline;
+}
+
+/* Icônes sociales */
+.footer-socials a {
+    font-size: 1.5em; /* Icônes plus grosses */
+    margin-right: 15px; /* Espace entre les icônes */
+}
+
+/* La barre de copyright tout en bas */
+.footer-bottom {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3); /* Ligne de séparation */
+    opacity: 0.7;
+    font-size: 0.9em;
+}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Écrire un nouvel article
+{% endblock title %}
+
+{% block content %}
+    <h2>{{ page_title|default:"Écrire un nouvel article" }}</h2>
+
+    <div style="padding: 10px; background: #eef; border: 1px solid #cce; margin-bottom: 15px; border-radius: 5px;">
+        <strong>Note :</strong> Votre article sera d'abord soumis en tant que <strong>Brouillon</strong>.
+        Il sera visible sur votre profil, mais seul un administrateur pourra le publier sur le site principal.
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.titre.id_for_label }}">Titre :</label>
+            {{ form.titre }}
+            {% if form.titre.errors %}
+                <div style="color: red;">{{ form.titre.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="{{ form.image_banniere.id_for_label }}">{{ form.image_banniere.label }} :</label>
+            {{ form.image_banniere }}
+            {% if form.image_banniere.errors %}
+                <div style="color: red;">{{ form.image_banniere.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Catégories :</label>
+
+            <div class="checkbox-list" style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; max-height: 150px; overflow-y: auto;">
+                {% for checkbox in form.categories %}
+                    <span class="checkbox-item" style="display: block;">
+
+                        {{ checkbox.tag }}
+
+                        <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+
+                    </span>
+                {% endfor %}
+
+            </div>
+
+            {% if form.categories.errors %}
+                <div style="color: red;">{{ form.categories.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="id_contenu">Contenu :</label>
+
+            {{ form.media }}
+            {{ form.contenu }}
+
+            {% if form.contenu.errors %}
+                <div style="color: red;">{{ form.contenu.errors }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit">Soumettre mon brouillon</button>
+
+    </form>
+
+{% endblock content %}
