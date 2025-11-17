@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('', include('core.urls', namespace='core')),
     path('admin/', admin.site.urls),
     # On branche les URLs nécessaires pour CKEditor 5
     path('ckeditor5/', include('django_ckeditor_5.urls')),

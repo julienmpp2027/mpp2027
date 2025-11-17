@@ -49,13 +49,18 @@
                 Écrit par
                 {% if article.auteur %}
                     <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}">
-                        {{ article.auteur.pseudo|default:article.auteur.email }}
+                    {% if article.auteur.pseudo %}
+                        {{ article.auteur.pseudo }}
+                    {% else %}
+                        utilisateur{{ article.auteur.id }}
+                    {% endif %}
                     </a>
                 {% else %}
                     Utilisateur supprimé
                 {% endif %}
                 le {{ article.date_creation|date:"d F Y" }}
-                <p>
+            </em>
+        </p>
                 <span id="hitcount-display">
                     {% get_hit_count for article as hits %}
                     {{ hits|default:0 }}
@@ -128,8 +133,13 @@
                     <strong>
                         {% if commentaire.auteur %}
                             <a href="{% url 'blog:auteur-profil' pk=commentaire.auteur.pk %}">
-                                {{ commentaire.auteur.pseudo|default:commentaire.auteur.email }}
+                                {% if commentaire.auteur.pseudo %}
+                                    {{ commentaire.auteur.pseudo }}
+                                {% else %}
+                                    utilisateur{{ commentaire.auteur.id }}
+                                {% endif %}
                             </a>
+
                         {% else %}
                             Utilisateur supprimé
                         {% endif %}

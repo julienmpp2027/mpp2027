@@ -212,11 +212,19 @@ body {
     min-width: 200px; /* Largeur minimale */
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 100; /* Doit être au-dessus de tout */
-    border-radius: 5px;
+    border-radius: 8px;/* Les bords arrondis */
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.5);/* L'ombre "pro" (l'effet flottant) */
+    border: 1px solid #ddd; /* Une petite bordure pour la finition */
+    overflow: hidden; /* On cache l'arrondi sur les liens à l'intérieur */
+
 }
 
-/* Quand on survole le conteneur... */
+/* Quand on survole le conteneur...
 .nav-dropdown:hover .nav-dropdown-content {
+    display: block;  ...on affiche la boîte !
+}*/
+/* Quand le conteneur a la classe "is-open" (javascript)... */
+.nav-dropdown-content.is-open {
     display: block; /* ...on affiche la boîte ! */
 }
 
@@ -229,15 +237,77 @@ body {
     border-bottom: 1px solid #f0f0f0; /* Ligne de séparation */
     background-color: var(--couleur-secondaire); /* Fond blanc */
     font-weight: 500; /* Un peu plus gras que la normale */
+    padding: 12px 20px; /* Plus d'espace */
+    font-size: 1.05em;  /* Texte légèrement plus grand */
+    border-bottom: 1px solid #f0f0f0; /* Ligne de séparation */
+    transition: all 0.2s ease-in-out; /* Animation de survol */
 }
 /* On enlève la bordure du dernier lien */
 .nav-dropdown-content a:last-child {
     border-bottom: none;
 }
 .nav-dropdown-content a:hover {
-    background-color: #f9f9f9; /* Survol gris clair */
+    /*background-color: #f9f9f9; *//* Survol gris clair */
+    background-color: var(--couleur-principale); /* Survol bleu */
+    color: var(--texte-sur-bleu);             /* Texte en blanc */
+    padding-left: 25px; /* Petit décalage vers la droite */
 }
 
+
+/* =============================================================================
+   STYLISATION DU MENU DÉROULANT (Overlay)
+   ============================================================================= */
+
+/* Le conteneur du menu (votre '.menu-overlay') */
+.menu-overlay {
+    background-color: var(--couleur-principale); /* Toujours votre bleu */
+    width: 250px; /* On le fixe pour le rendre un peu plus "solide" */
+
+    /* --- NOUVEAUTÉS POUR L'ESTHÉTIQUE --- */
+    border-top-right-radius: 8px;   /* Bords arrondis */
+    border-bottom-right-radius: 8px; /* Bords arrondis */
+
+    /* Une ombre élégante qui fait "flotter" le menu */
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+
+    /* Une légère bordure sur le côté pour le démarquer */
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Assure que la transition de sortie est fluide aussi */
+    transition: left 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Les liens à l'intérieur du menu */
+.menu-overlay ul li a {
+    padding: 12px 20px; /* Plus d'espace autour des liens */
+    color: var(--texte-sur-bleu);
+    display: block; /* Prend toute la largeur cliquable */
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
+}
+
+.menu-overlay ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Léger surbrillance au survol */
+    padding-left: 25px; /* Petit effet "glissant" au survol */
+}
+
+/* Le bouton de fermeture (le 'X') */
+.close-button {
+    font-size: 2.5em; /* Un X plus grand et plus visible */
+    color: var(--texte-sur-bleu);
+    margin: 10px 15px; /* Plus d'espace */
+
+    /* Rendre le bouton plus cliquable */
+    cursor: pointer;
+    background: none;
+    border: none;
+    line-height: 1; /* Aligne le X */
+}
+
+.close-button:hover {
+    color: rgba(255, 255, 255, 0.8); /* Changement de couleur au survol */
+}
 /* =============================================================================
    STYLES POUR NOS FORMULAIRES
    ============================================================================= */

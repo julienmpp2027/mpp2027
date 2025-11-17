@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue - mpp2027</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+            body, html {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+
+            .splash-container {
+                /* L'image et le voile (ne change pas) */
+                background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+                            url("{% static 'img/flag_background.jpg' %}");
+
+                /* --- LE FIX EST ICI --- */
+                /* On force la hauteur à 100% de la fenêtre */
+                min-height: 100vh;
+
+                /* Le reste (ne change pas) */
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .splash-content {
+                text-align: center;
+                color: white;
+            }
+
+            /* C'est le style que vous avez demandé (ne change pas) */
+            .splash-content h1 {
+                font-family: 'Dancing Script', cursive;
+                font-weight: 700;
+                font-size: 4.5em;
+                text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7),
+                             0 0 10px rgba(255, 255, 255, 0.3);
+            }
+
+            .splash-content a {
+                color: white;
+                text-decoration: underline;
+                font-size: 1.2em;
+                font-weight: bold;
+                transition: all 0.2s;
+            }
+            .splash-content a:hover {
+                color: #ddd;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+            }
+        </style>
+</head>
+<body>
+
+    <div class="splash-container">
+        <div class="splash-content">
+            <h1>mon p'tit programme</h1>
+            <a href="{% url 'blog:liste-articles' %}">Entrée sur mpp2027</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -49,7 +49,8 @@ def register_view(request):
 
             # --- NOTRE ACCUEIL ---
             # On connecte le nouvel utilisateur directement
-            login(request, user)
+            # On dit à 'login' d'utiliser le backend par défaut de Django
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
             # On le redirige vers l'accueil du blog
             return redirect('blog:liste-articles')

@@ -31,12 +31,10 @@
 
             <div class="navbar-left">
                 <div class="nav-dropdown">
-                    <a href="#" class="nav-button-outline">
-                        <i class="fas fa-bars"></i>
+                    <a href="#" class="nav-button-outline" id="menu-toggle-button"> <i class="fas fa-bars"></i>
                         <span style="margin-left: 8px;">Menu</span>
                     </a>
-
-                    <div class="nav-dropdown-content">
+                    <div class="nav-dropdown-content" id="menu-dropdown-content">
                         {% for link in main_nav_links %}
                             <a href="{{ link.url }}">{{ link.name }}</a>
                         {% endfor %}
@@ -76,8 +74,15 @@
                     </form>
 
                 {% else %}
-                    <a href="{% url 'users:login' %}" class="nav-button-solid">Connexion</a>
-                {% endif %}
+                <div style="display: flex; align-items: center;">
+                    <a href="{% url 'users:register' %}" class="nav-button-outline" style="margin-right: 15px;">
+                        S'inscrire
+                    </a>
+                    <a href="{% url 'users:login' %}" class="nav-button-solid">
+                        Connexion
+                    </a>
+                </div>
+            {% endif %}
 
             </div>
         </nav>
@@ -135,7 +140,7 @@
                     <a href="#" title="LinkedIn" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-linkedin-in"></i>
                     </a>
-                    <a href="#" title="GitHub" target="_blank" rel="noopener noreferrer">
+                    <a href="https://github.com/julienmpp2027" title="GitHub" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-github"></i>
                     </a>
                 </div>
@@ -147,6 +152,32 @@
             &copy; 2025 - mpp2027 - mon p'tit programme
         </div>
     </footer>
+
+    <script>
+        // On attend que la page soit chargée
+        document.addEventListener('DOMContentLoaded', function() {
+
+        // On trouve le bouton et le menu
+        const menuButton = document.getElementById('menu-toggle-button');
+        const menuDropdown = document.getElementById('menu-dropdown-content');
+
+        // On écoute le CLIC sur le bouton
+        menuButton.addEventListener('click', function(event) {
+            // On empêche le lien <a> de remonter en haut de la page
+            event.preventDefault();
+
+            // On ajoute ou on enlève la classe "is-open"
+            menuDropdown.classList.toggle('is-open');
+        });
+
+        // (Bonus : ferme le menu si on clique n'importe où ailleurs)
+        window.addEventListener('click', function(event) {
+            if (!menuButton.contains(event.target)) {
+                menuDropdown.classList.remove('is-open');
+            }
+        });
+    });
+    </script>
     </body>
 </html>
 

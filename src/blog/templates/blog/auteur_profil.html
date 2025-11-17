@@ -1,12 +1,19 @@
 {% extends 'base.html' %}
 
-{% block title %}Profil de {{ auteur.pseudo|default:auteur.email }}{% endblock title %}
+{% block title %}
+    Profil de
+    {% if auteur.pseudo %}
+        {{ auteur.pseudo }}
+    {% else %}
+        user{{ auteur.id }}
+    {% endif %}
+{% endblock title %}
 
 {% block content %}
 
     <section class="profil-header" style="display: flex; align-items: center; margin-bottom: 20px;">
         {% if auteur.profile_picture %}
-            <img src="{{ auteur.profile_picture.url }}" alt="Photo de {{ auteur.pseudo }}"
+            <img src="{{ auteur.profile_picture.url }}" alt="Photo de {% if auteur.pseudo %}{{ auteur.pseudo }}{% else %}user{{ auteur.id }}{% endif %}"
                  style="max-width: 150px; height: 150px; border-radius: 50%; margin-right: 20px; object-fit: cover;">
         {% else %}
             <div style="width: 150px; height: 150px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-size: 3em; color: #aaa;">
@@ -15,7 +22,13 @@
         {% endif %}
 
         <div>
-            <h1>{{ auteur.pseudo|default:auteur.email }}</h1>
+            <h1>
+                {% if auteur.pseudo %}
+                    {{ auteur.pseudo }}
+                {% else %}
+                    utilisateur{{ auteur.id }}
+                {% endif %}
+            </h1>
             <p>Membre depuis {{ auteur.date_joined|date:"F Y" }}</p>
 
             {% if auteur.description %}
