@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 from decouple import config
 import certifi
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,8 +87,19 @@ WSGI_APPLICATION = 'mpp2027.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
+# On crée une variable vide
+DATABASES = {}
+
+# On vérifie si on est en production (sur Render)
+if 'DATABASE_URL' in os.environ:
+    # Si oui, on utilise l'URL de la BDD de Render
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True # Render exige une connexion SSL
+    )
+else:
+    # Si non (on est en local), on utilise notre config habituelle
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mpp2027_db',
         'USER': 'mpp2027_admin',
@@ -95,7 +107,6 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
