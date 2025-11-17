@@ -204,6 +204,11 @@ SITE_ID = 1
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
+#fichiers statics
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# L'astuce Whitenoise pour une mise en cache efficace
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Pagination du blog
 BLOG_ARTICLES_PAR_PAGE = 5
 
