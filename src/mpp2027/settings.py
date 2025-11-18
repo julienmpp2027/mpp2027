@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
     # --- BLOC POUR ALLAUTH ---
     'django.contrib.sites',  # Requis par allauth
@@ -54,7 +55,6 @@ INSTALLED_APPS = [
     # --- FIN DU BLOC ALLAUTH ---
     'django_ckeditor_5',
     'hitcount',
-    'cloudinary_storage',
     'cloudinary',
 ]
 
