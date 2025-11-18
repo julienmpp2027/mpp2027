@@ -217,6 +217,21 @@ LOGOUT_REDIRECT_URL = 'blog:liste-articles'
 # Site ID pour allauth
 SITE_ID = 1
 
+# =============================================================================
+# CONFIGURATION DU STOCKAGE MÉDIA (CLOUDINARY)
+# =============================================================================
+#
+# On lit les 3 clés secrètes depuis nos variables d'environnement
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+# On dit à Django d'utiliser Cloudinary pour TOUS les fichiers média
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
 # Fichiers Media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
@@ -264,16 +279,4 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
-# =============================================================================
-# CONFIGURATION DU STOCKAGE MÉDIA (CLOUDINARY)
-# =============================================================================
-#
-# On lit les 3 clés secrètes depuis nos variables d'environnement
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': config('CLOUDINARY_API_KEY'),
-    'API_SECRET': config('CLOUDINARY_API_SECRET'),
-}
 
-# On dit à Django d'utiliser Cloudinary pour TOUS les fichiers média
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
