@@ -113,6 +113,8 @@ else:
         'HOST': 'localhost',
         'PORT': '5432',
     }
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -231,11 +233,11 @@ CLOUDINARY_STORAGE = {
 # On dit à Django d'utiliser Cloudinary pour TOUS les fichiers média
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-
+"""
 # Fichiers Media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
-
+"""
 # Pagination du blog
 BLOG_ARTICLES_PAR_PAGE = 5
 
