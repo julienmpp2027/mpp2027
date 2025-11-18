@@ -59,6 +59,9 @@
 
                         {% if user.profile_picture %}
                             <img src="{{ user.profile_picture.url }}" alt="Profil" class="navbar-profile-pic">
+                            <!--Pour test-->
+                            <img src="{{ test_model_instance.image.url }}" alt="{{ test_model_instance.image.name }}">
+                            <!--fin du test-->
                         {% else %}
                             <i class="fas fa-user-circle navbar-profile-pic default-icon"></i>
                         {% endif %}
