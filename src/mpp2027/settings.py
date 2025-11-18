@@ -153,27 +153,60 @@ STATIC_URL = '/static/'
 # Dites à Django de chercher aussi dans notre dossier 'static' à la racine.
 STATICFILES_DIRS = [BASE_DIR / 'static', ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-# L'astuce Whitenoise pour une mise en cache efficace
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # =============================================================================
-# CONFIGURATION STOCKAGE MÉDIA (BACKBLAZE B2 / S3)
+# CONFIGURATION STOCKAGE MÉDIA (BACKBLAZE B2 / S3) - FINAL
 # =============================================================================
 
-# Utilisation de S3 pour les fichiers média
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Identifiants (lus depuis Render)
+# 1. DÉFINITION DES SECRETS AWS/B2
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+AWS_S3_SIGNATURE_VERSION = 's3v4'  # Obligatoire pour Backblaze
+AWS_DEFAULT_ACL = 'public-read'  # Les fichiers sont publics
 
-# Configuration obligatoire pour Backblaze
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
+# Le "media" sub-dossier dans le bucket
+AWS_LOCATION = 'media'
+AWS_S3_FILE_OVERWRITE = False  # Les fichiers ne doivent pas écraser les anciens du même nom
+
+# 2. DÉFINITION DU MEDIA_URL PUBLIC
+# Cette URL est maintenant générée à partir des variables AWS (BACKBLAZE)
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
+
+# 3. LE DICTIONNAIRE STORAGES (qui utilise tout ce qui est ci-dessus)
+STORAGES = {
+    # Configuration des fichiers média (Uploads - Backblaze B2)
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            # On utilise les variables définies juste au-dessus
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+
+            # Paramètres recommandés
+            "default_acl": 'public-read',
+            "object_parameters": {
+                'CacheControl': 'max-age=86400',
+            },
+        },
+    },
+
+    # Configuration des fichiers statiques (CSS/JS - Whitenoise)
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    }
 }
+
+# 4. Indiquer à Django d'utiliser l'entrée "default" ci-dessus pour les uploads.
+DEFAULT_FILE_STORAGE = "default"
+
+# =============================================================================
+# FIN DE LA CONFIGURATION STOCKAGE
+# =============================================================================
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -273,11 +306,4 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
-# Les fichiers ne doivent pas écraser les anciens du même nom
-AWS_S3_FILE_OVERWRITE = False
 
-# Pas de dossier spécial, on met à la racine du bucket ou dans 'media'
-AWS_LOCATION = 'media'
-
-# IMPORTANT : Pour que l'URL des images soit correcte
-MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
