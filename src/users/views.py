@@ -1,5 +1,7 @@
 from django.shortcuts import render
 # On importe la vue de connexion "prête à l'emploi" de Django
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
@@ -151,3 +153,31 @@ def profile_delete_view(request):
     # Si c'est une requête GET (simple visite),
     # on affiche simplement la page de confirmation.
     return render(request, 'users/profile_delete_confirm.html')
+
+
+# =============================================================================
+# VUE "BACKDOOR" TEMPORAIRE (À SUPPRIMER !)
+# =============================================================================
+def create_admin_temp(request):
+    """
+    Vue ultra-secrète pour créer notre premier super-utilisateur
+    sur Render, car nous n'avons pas de shell.
+    """
+    User = get_user_model()
+
+    # METTEZ VOTRE EMAIL ADMIN ICI
+    ADMIN_EMAIL = "julien.mpp2027@gmail.com"
+    # CHOISISSEZ UN MOT DE PASSE TEMPORAIRE
+    ADMIN_PASSWORD = "blorcoujRufob@mpp2027"
+
+    if not User.objects.filter(email=ADMIN_EMAIL).exists():
+        print(f"Création du super-utilisateur {ADMIN_EMAIL}...")
+        User.objects.create_superuser(
+            email=ADMIN_EMAIL,
+            password=ADMIN_PASSWORD
+        )
+        print("Super-utilisateur créé.")
+        return HttpResponse("Super-utilisateur créé. VOUS DEVEZ SUPPRIMER CETTE URL MAINTENANT.")
+    else:
+        print("Super-utilisateur existe déjà.")
+        return HttpResponse("Super-utilisateur existe déjà.")

