@@ -1,6 +1,6 @@
 from django.urls import path, reverse_lazy
 # On importe notre vue de connexion personnalisée
-from .views import UserLoginView, register_view, profile_view, profile_delete_view, create_admin_temp
+from .views import UserLoginView, register_view, profile_view, profile_delete_view
 from .forms import UserPasswordResetForm
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
@@ -47,5 +47,4 @@ urlpatterns = [
          name='password_reset_complete'),
     # ----------------------------------------------------------------------------------------------------------
     path('profil/', profile_view, name='profile'),
-    path('creation-admin-secrete-a-effacer-777/', create_admin_temp, name='create-admin-temp'),
 ]
