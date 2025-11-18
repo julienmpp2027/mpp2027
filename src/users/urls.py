@@ -1,6 +1,6 @@
 from django.urls import path, reverse_lazy
 # On importe notre vue de connexion personnalisée
-from .views import UserLoginView, register_view, profile_view, profile_delete_view
+from .views import UserLoginView, register_view, profile_view, profile_delete_view, create_admin_temp
 from .forms import UserPasswordResetForm
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
