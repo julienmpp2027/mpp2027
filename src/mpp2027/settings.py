@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     # --- FIN DU BLOC ALLAUTH ---
     'django_ckeditor_5',
     'hitcount',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -99,7 +101,7 @@ if 'DATABASE_URL' in os.environ:
     # Si oui, on utilise l'URL de la BDD de Render
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
-        ssl_require=True # Render exige une connexion SSL
+        ssl_require=True  # Render exige une connexion SSL
     )
 else:
     # Si non (on est en local), on utilise notre config habituelle
@@ -147,7 +149,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Dites à Django de chercher aussi dans notre dossier 'static' à la racine.
-STATICFILES_DIRS = [ BASE_DIR / 'static', ]
+STATICFILES_DIRS = [BASE_DIR / 'static', ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 # L'astuce Whitenoise pour une mise en cache efficace
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -208,7 +210,6 @@ AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_REDIRECT_URL = 'blog:liste-articles'
 LOGOUT_REDIRECT_URL = 'blog:liste-articles'
 
-
 # =============================================================================
 # AUTRES CONFIGURATIONS (BLOG, MEDIA, ETC.)
 # =============================================================================
@@ -220,11 +221,8 @@ SITE_ID = 1
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
-
-
 # Pagination du blog
 BLOG_ARTICLES_PAR_PAGE = 5
-
 
 # =============================================================================
 #                   CONFIGURATION DES EMAILS (PRODUCTION)
@@ -266,4 +264,16 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
+# =============================================================================
+# CONFIGURATION DU STOCKAGE MÉDIA (CLOUDINARY)
+# =============================================================================
+#
+# On lit les 3 clés secrètes depuis nos variables d'environnement
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
 
+# On dit à Django d'utiliser Cloudinary pour TOUS les fichiers média
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
