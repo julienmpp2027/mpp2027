@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     # --- FIN DU BLOC ALLAUTH ---
     'django_ckeditor_5',
     'hitcount',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -160,10 +161,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# =============================================================================
-# CONFIGURATIONS PERSONNALISÉES DU PROJET
-# =============================================================================
-# Fichier : src/mpp2027/settings.py
 
 # =============================================================================
 # GESTION DE L'AUTHENTIFICATION (DJANGO + ALLAUTH)
@@ -175,9 +172,6 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Fichier : src/mpp2027/settings.py
-
-# ... (après vos AUTHENTICATION_BACKENDS) ...
 
 # =============================================================================
 # CONFIGURATION DJANGO-ALLAUTH (Version "Zéro Warning, cette fois c'est la bonne")
@@ -191,7 +185,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'optional'
 # 2. Configuration de notre CustomUser (le plus important)
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_FIELD = 'email'
-# <-- ON A SUPPRIMÉ LA LIGNE ACCOUNT_USERNAME_REQUIRED D'ICI
 
 # 3. Nos adaptateurs
 ACCOUNT_ADAPTER = 'users.adapter.MyAccountAdapter'
@@ -217,11 +210,6 @@ LOGOUT_REDIRECT_URL = 'blog:liste-articles'
 
 # Site ID pour allauth
 SITE_ID = 1
-
-
-# Fichiers Media
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
 # Pagination du blog
 BLOG_ARTICLES_PAR_PAGE = 5
@@ -266,4 +254,30 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
+# =============================================================================
+# CONFIGURATION STOCKAGE MÉDIA (BACKBLAZE B2 / S3)
+# =============================================================================
 
+# Utilisation de S3 pour les fichiers média
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Identifiants (lus depuis Render)
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+
+# Configuration obligatoire pour Backblaze
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+# Les fichiers ne doivent pas écraser les anciens du même nom
+AWS_S3_FILE_OVERWRITE = False
+
+# Pas de dossier spécial, on met à la racine du bucket ou dans 'media'
+AWS_LOCATION = 'media'
+
+# IMPORTANT : Pour que l'URL des images soit correcte
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
