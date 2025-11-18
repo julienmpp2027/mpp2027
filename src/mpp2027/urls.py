@@ -31,9 +31,9 @@ urlpatterns = [
     path('blog/', include('blog.urls', namespace='blog')),
     path('comptes/', include('users.urls', namespace='users')),
 ]
-"""
+
 # Ne faites ceci qu'en mode DEBUG (JUSTE POUR DEVELOPPEMENT)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-"""
+
 
