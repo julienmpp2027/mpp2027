@@ -1,8 +1,11 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect
 
 
 class MyAccountAdapter(DefaultAccountAdapter):
@@ -24,7 +27,9 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         réussie, mais AVANT que Django ne crée ou ne connecte
         l'utilisateur.
         """
-
+        if not sociallogin.user.email:
+            messages.error(request, "Google n'a pas fourni votre adresse email. Veuillez contacter le support.")
+            raise ImmediateHttpResponse(redirect('/comptes/login/'))
         # 1. On récupère l'email de Google
         # (il est dans sociallogin.user.email)
         email = sociallogin.user.email
