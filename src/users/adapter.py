@@ -1,76 +1,54 @@
-from allauth.account.adapter import DefaultAccountAdapter
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.core.exceptions import ImmediateHttpResponse
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect
 
 
 class MyAccountAdapter(DefaultAccountAdapter):
     """
-    On garde cet adaptateur pour les réglages du compte local.
-    (On n'en a pas besoin pour l'instant).
+    Adaptateur pour les connexions classiques.
     """
     pass
 
 
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     """
-    C'est ici qu'on gère la connexion sociale.
+    Adaptateur qui gère la connexion Google/Sociale.
+    Il connecte automatiquement un compte Google à un utilisateur local existant,
+    si les emails correspondent (et si l'email Google est vérifié).
     """
 
     def pre_social_login(self, request, sociallogin):
-        """
-        Cette fonction est appelée juste après une connexion Google
-        réussie, mais AVANT que Django ne crée ou ne connecte
-        l'utilisateur.
-        """
-        if not sociallogin.user.email:
-            messages.error(request, "Google n'a pas fourni votre adresse email. Veuillez contacter le support.")
-            raise ImmediateHttpResponse(redirect('/comptes/login/'))
-        # 1. On récupère l'email de Google
-        # (il est dans sociallogin.user.email)
+
         email = sociallogin.user.email
 
+        # 1. Vérification minimale
         if not email:
-            # Pas d'email ? On laisse allauth gérer le problème.
-            return
+            messages.error(request, "Google n'a pas pu fournir votre adresse email.")
+            raise ImmediateHttpResponse(redirect('/comptes/login/'))
 
-        # 2. On vérifie que Google a bien VÉRIFIÉ cet email
         is_verified = sociallogin.account.extra_data.get('verified_email', False)
         if not is_verified:
-            # Si non vérifié, on ne fait pas confiance.
+            # Ne pas faire confiance à un email non vérifié par Google
             return
 
-        # 3. On cherche si un utilisateur LOCAL (votre superuser)
-        #    existe déjà avec cet email.
-        User = get_user_model()  # C'est notre CustomUser
+        # 2. On cherche si un utilisateur local AVEC CET EMAIL existe
+        User = get_user_model()
         try:
             existing_user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
-            # Pas d'utilisateur local ? Parfait.
-            # On laisse allauth continuer son flux normal
-            # (qui va créer un nouvel utilisateur).
+            # L'utilisateur n'existe pas en local. On le laisse s'inscrire normalement.
             return
 
-        # 4. LE CAS MAGIQUE :
-        # On a trouvé un utilisateur local (existing_user) !
-
-        # On vérifie si ce compte Google est déjà lié à quelqu'un
-        if sociallogin.is_existing:
-            # C'est juste un login normal. On ne fait rien.
-            return
-
-        # 5. C'est le cas de votre screenshot :
-        # L'email existe localement, mais ce compte Google
-        # n'est pas encore lié. On les connecte de force !
+        # 3. L'utilisateur local (ex: le superuser) existe. On connecte les deux comptes.
+        #    Ceci empêche la page de conflit "Sign Up" d'apparaître.
         sociallogin.connect(request, existing_user)
 
-class MyAccountAdapter(DefaultAccountAdapter):
-    pass  # On le remplira plus tard si besoin
+        # On peut optionally ajouter un message de succès (cela sera affiché à l'accueil)
+        messages.success(request,
+                         f"Connexion réussie ! Votre compte Google a été lié à votre compte {existing_user.email}.")
 
-
-class MySocialAccountAdapter(DefaultSocialAccountAdapter):
-    pass  # On le remplira plus tard si besoin
+        # On coupe le flow d'inscription et on redirige directement
+        raise ImmediateHttpResponse(redirect('blog:liste-articles'))
