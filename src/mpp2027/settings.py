@@ -1,3 +1,4 @@
+# mpp2027/src/mpp2027/settings.py
 """
 Django settings for mpp2027 project.
 
@@ -93,18 +94,19 @@ WSGI_APPLICATION = 'mpp2027.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# On crée une variable vide
-DATABASES = {}
+# =============================================================================
+# BASE DE DONNÉES (Votre structure conditionnelle)
+# =============================================================================
+DATABASES = {}  # On crée une variable vide
 
-# On vérifie si on est en production (sur Render)
 if 'DATABASE_URL' in os.environ:
-    # Si oui, on utilise l'URL de la BDD de Render
+    # Production (Render)
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
-        ssl_require=True  # Render exige une connexion SSL
+        ssl_require=True
     )
 else:
-    # Si non (on est en local), on utilise notre config habituelle
+    # Local (Votre configuration PostgreSQL originale)
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'mpp2027_db',
@@ -113,8 +115,10 @@ else:
         'HOST': 'localhost',
         'PORT': '5432',
     }
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'mediafiles'
+# FIX POUR LE BUG DE CERTIFICAT SSL POSTGRESQL (Nécessaire pour Render)
+os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+os.environ['SSL_CERT_FILE'] = certifi.where()
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -149,63 +153,60 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
-# Dites à Django de chercher aussi dans notre dossier 'static' à la racine.
 STATICFILES_DIRS = [BASE_DIR / 'static', ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# =============================================================================
-# CONFIGURATION STOCKAGE MÉDIA (BACKBLAZE B2 / S3) - FINAL
-# =============================================================================
+# Configuration Médias (Valeurs de base)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
-# 1. DÉFINITION DES SECRETS AWS/B2
-AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
-AWS_S3_SIGNATURE_VERSION = 's3v4'  # Obligatoire pour Backblaze
-AWS_DEFAULT_ACL = 'public-read'  # Les fichiers sont publics
-
-# Le "media" sub-dossier dans le bucket
-AWS_LOCATION = 'media'
-AWS_S3_FILE_OVERWRITE = False  # Les fichiers ne doivent pas écraser les anciens du même nom
-
-# 2. DÉFINITION DU MEDIA_URL PUBLIC
-# Cette URL est maintenant générée à partir des variables AWS (BACKBLAZE)
-MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
-
-# 3. LE DICTIONNAIRE STORAGES (qui utilise tout ce qui est ci-dessus)
+# --- 1. DÉFINITION DU DICTIONNAIRE STORAGES (LA CLÉ DE LA SOLUTION) ---
 STORAGES = {
-    # Configuration des fichiers média (Uploads - Backblaze B2)
+    # DEFAULT STORAGE (MEDIA): STOCKAGE LOCAL PAR DEFAUT (RÉSOUD L'ERREUR LOCAL)
     "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    # STATICFILES: EN LOCAL, on utilise le stockage simple de Django
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    }
+}
+
+# 2. OVERRIDE EN MODE PRODUCTION
+if not DEBUG:
+    # Remplacement des backends pour la Production (Render)
+
+    # Variables B2/S3 (doivent exister dans l'environnement Render)
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_LOCATION = 'media'
+
+    # Remplacement du MEDIA_URL par l'URL publique B2/S3
+    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
+
+    # Remplacement du backend MEDIA (default) par B2/S3
+    STORAGES["default"] = {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         "OPTIONS": {
-            # On utilise les variables définies juste au-dessus
             "access_key": AWS_ACCESS_KEY_ID,
             "secret_key": AWS_SECRET_ACCESS_KEY,
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
             "endpoint_url": AWS_S3_ENDPOINT_URL,
-
-            # Paramètres recommandés
             "default_acl": 'public-read',
             "object_parameters": {
                 'CacheControl': 'max-age=86400',
             },
         },
-    },
+    }
 
-    # Configuration des fichiers statiques (CSS/JS - Whitenoise)
-    "staticfiles": {
+    # Remplacement du backend STATICFILES par WhiteNoise (pour la production)
+    STORAGES["staticfiles"] = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     }
-}
-
-# 4. Indiquer à Django d'utiliser l'entrée "default" ci-dessus pour les uploads.
-DEFAULT_FILE_STORAGE = "default"
-
-# =============================================================================
-# FIN DE LA CONFIGURATION STOCKAGE
-# =============================================================================
 
 
 # Default primary key field type
@@ -319,3 +320,216 @@ CKEDITOR_5_CONFIGS = {
 }
 
 
+
+
+"""
+
+import os
+from pathlib import Path
+from decouple import config
+import certifi  # Requis pour la BDD SSL sur Render
+import dj_database_url
+
+# =============================================================================
+# CHEMINS DE BASE ET DÉFINITIONS CLÉS
+# =============================================================================
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = config('SECRET_KEY')
+# DEBUG est FALSE par défaut en production, lu depuis .env en local
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1').split(',')
+
+# =============================================================================
+# APPLICATIONS
+# =============================================================================
+
+INSTALLED_APPS = [
+    # 1. Applications Django de base
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sites',  # Requis par allauth
+
+    # 2. Third-party Apps (Ordre optimisé pour allauth)
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'storages',
+    'django_ckeditor_5',
+    'hitcount',
+    'crispy_forms',  # Pour les formulaires
+    'crispy_bootstrap4',  # Pour le style Bootstrap 4
+
+    # 3. Vos Applications Locales
+    'core',
+    'blog',
+    'users.apps.UsersConfig',
+]
+
+# Paramètres Crispy Forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+# =============================================================================
+# MIDDLEWARE
+# =============================================================================
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # RÉSOUD : ImproperlyConfigured: allauth.account.middleware.AccountMiddleware
+    'allauth.account.middleware.AccountMiddleware',
+]
+
+# ... (Templates, WSGI, Password Validation, Internationalization - inchangés)
+
+# =============================================================================
+# BASE DE DONNÉES (Votre structure conditionnelle)
+# =============================================================================
+DATABASES = {}
+
+if 'DATABASE_URL' in os.environ:
+    # Production (Render)
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True
+    )
+else:
+    # Local (Votre configuration PostgreSQL originale)
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mpp2027_db',
+        'USER': 'mpp2027_admin',
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+# FIX POUR LE BUG DE CERTIFICAT SSL POSTGRESQL (Nécessaire pour Render)
+os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+os.environ['SSL_CERT_FILE'] = certifi.where()
+
+# =============================================================================
+# FICHIERS STATIQUES & MEDIAS (SÉPARATION LOCAL/PROD)
+# =============================================================================
+
+# Configuration Statiques
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static', ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Configuration Médias (Valeurs de base)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'mediafiles'
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# Configuration des backends de stockage
+STORAGES = {
+    # Statiques gérés par WhiteNoise en Prod, par Django en Local
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    }
+}
+
+if not DEBUG:
+    # MODE PRODUCTION (RENDER - DEBUG=False) : Utilise Backblaze B2/S3
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL')
+
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_LOCATION = 'media'
+
+    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+    # Ajout du backend S3/B2 au dictionnaire STORAGES
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": AWS_ACCESS_KEY_ID,
+            "secret_key": AWS_SECRET_ACCESS_KEY,
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "default_acl": 'public-read',
+            "object_parameters": {
+                'CacheControl': 'max-age=86400',
+            },
+        },
+    }
+
+# =============================================================================
+# AUTHENTIFICATION & REDIRECTIONS (Allauth et CustomUser)
+# =============================================================================
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+SITE_ID = 1
+AUTH_USER_MODEL = 'users.CustomUser'
+LOGIN_REDIRECT_URL = 'blog:liste-articles'
+LOGOUT_REDIRECT_URL = 'blog:liste-articles'
+
+# Configuration Allauth (Essentiel pour le bon fonctionnement de allauth.account.urls)
+ACCOUNT_LOGIN_METHODS = ['email']
+ACCOUNT_SIGNUP_FIELDS = ['email']
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_FIELD = 'email'
+ACCOUNT_ADAPTER = 'users.adapter.MyAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'users.adapter.MySocialAccountAdapter'
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'}
+    }
+}
+
+# =============================================================================
+# CONFIGURATION DES EMAILS (Mailgun/SMTP)
+# =============================================================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.mailgun.org')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER')
+ADMIN_EMAIL = config('ADMIN_EMAIL')
+
+# =============================================================================
+# AUTRES CONFIGURATIONS
+# =============================================================================
+# RÉSOUD : AttributeError: 'Settings' object has no attribute 'BLOG_ARTICLES_PAR_PAGE'
+BLOG_ARTICLES_PAR_PAGE = 5
+
+# Configuration CKEditor 5
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'language': 'fr',
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'link', '|',
+            'fontColor', 'fontBackgroundColor', '|',
+            'bulletedList', 'numberedList', 'alignment', '|',
+            'outdent', 'indent', 'blockQuote', '|',
+            'undo', 'redo'
+        ],
+    }
+}
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' 
+"""
