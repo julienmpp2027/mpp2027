@@ -244,6 +244,18 @@ SOCIALACCOUNT_ADAPTER = 'users.adapter.MySocialAccountAdapter'
 
 # On supprime la page de confirmation "Continue"
 SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        # 'SCOPE' est la liste des permissions que nous demandons à Google
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
 # =============================================================================
 
 # =============================================================================
