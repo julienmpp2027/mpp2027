@@ -8,12 +8,10 @@
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ absolute_url }}">
     {% if absolute_image_url %}
-        <meta property="og:image" content='{{ absolute_image_url }}?v={{ article.date_modification|date:"U" }}'>
-        <meta name="twitter:image" content='{{ absolute_image_url }}?v={{ article.date_modification|date:"U" }}'>
+    <meta property="og:image" content="{{ absolute_image_url }}">
     {% endif %}
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@mpp2027">
     <meta name="twitter:title" content="{{ article.titre }}">
     <meta name="twitter:description" content="{{ article.contenu|striptags|truncatewords:30 }}">
     {% if absolute_image_url %}
