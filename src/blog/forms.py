@@ -42,48 +42,47 @@ class CommentaireForm(forms.ModelForm):
 # =============================================================================
 
 class ArticleForm(forms.ModelForm):
-    # On définit le champ 'contenu' ici comme avant
+    # On définit le champ 'contenu' avec l'éditeur riche
     contenu = forms.CharField(widget=CKEditor5Widget(config_name='default'), required=False)
 
     class Meta:
         model = Article
         fields = ('titre', 'contenu', 'image_banniere', 'categories')
 
-        # --- LA SOLUTION EST ICI ---
-        # On définit les widgets directement dans la Meta
-        # C'est plus propre et ça évite le bug de __init__
         widgets = {
             'categories': forms.CheckboxSelectMultiple,
             'titre': forms.TextInput(
-                attrs={'class': 'form-control-large', 'placeholder': 'Le titre de votre article...'}),
+                attrs={'class': 'form-control-large', 'placeholder': 'Le titre de votre article...'}
+            ),
         }
-
-        # On peut aussi définir les labels ici
         labels = {
             'image_banniere': "Image de bannière (facultatif)",
         }
 
-    def save(self, commit=True, user=None):
+    def clean_image_banniere(self):
         """
-        On surcharge la méthode save() pour forcer l'auteur
-        et le statut brouillon.
+        Validation personnalisée pour l'image de bannière.
+        Vérifie que le fichier ne dépasse pas une certaine taille (ex: 5 Mo).
         """
-        #  On récupère l'objet article "en mémoire" (commit=False)
-        article = super().save(commit=False)
+        image = self.cleaned_data.get('image_banniere')
 
-        #  On assigne l'auteur (s'il est fourni par la vue)
+        if image:
+            # On définit la limite (5 Mo = 5 * 1024 * 1024 octets)
+            limit_mb = 5
+            if image.size > limit_mb * 1024 * 1024:
+                raise forms.ValidationError(f"L'image est trop volumineuse. La taille maximale est de {limit_mb} Mo.")
+
+        return image
+
+    def save(self, commit=True, user=None):
+        # ... (Votre méthode save existante reste identique) ...
+        article = super().save(commit=False)
         if user:
             article.auteur = user
-
-        #  On force le statut (c'est notre règle de modération)
         article.statut = Article.Status.DRAFT
-
-        # On sauvegarde l'objet principal (si commit=True)
         if commit:
             article.save()
-            # On sauvegarde les M2M (très important !)
             self.save_m2m()
-
         return article
 
 

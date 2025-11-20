@@ -10,10 +10,11 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from .models import Article, Commentaire, Categorie
-from users.models import CustomUser
 from .forms import CommentaireForm, ArticleForm, ContactForm
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from messagerie.models import Message
+from users.models import CustomUser
 
 
 # =============================================================================
@@ -375,10 +376,11 @@ class ArticleUpdateView(LoginRequiredMixin, UpdateView):
 # =============================================================================
 #                              PAGE DE CONTACT
 # =============================================================================
-def contact_view(request):
-    """
+# ancienne configuration avec gmail
+"""def contact_view(request):
+   
     Gère la page de contact et l'envoi d'email.
-    """
+    
     if request.method == 'POST':
         # Le formulaire a été soumis
         form = ContactForm(request.POST)
@@ -425,6 +427,58 @@ def contact_view(request):
             initial_data['email'] = request.user.email
 
         # On crée le formulaire, en lui passant les données initiales
+        form = ContactForm(initial=initial_data)
+
+    context = {'form': form}
+    return render(request, 'blog/contact.html', context) """
+
+# config avec messagerie interne
+def contact_view(request):
+    """
+    Gère la page de contact.
+    ENREGISTRE LE MESSAGE EN BDD (Messagerie Interne) au lieu d'envoyer un email SMTP.
+    """
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+
+        if form.is_valid():
+            nom = form.cleaned_data['nom']
+            email_expediteur = form.cleaned_data['email']
+            sujet = form.cleaned_data['sujet']
+            message_content = form.cleaned_data['message']
+
+            # 1. Trouver à qui l'envoyer (L'administrateur principal)
+            # On prend le premier superuser trouvé
+            admin_user = CustomUser.objects.filter(is_superuser=True).first()
+
+            if not admin_user:
+                messages.error(request, "Aucun administrateur trouvé pour recevoir le message.")
+                return redirect('blog:liste-articles')
+
+            # 2. Créer le message en base de données
+            nouveau_msg = Message(
+                destinataire=admin_user,
+                sujet=f"[Contact Blog] {sujet}",
+                contenu=message_content,
+                nom_guest=nom,
+                email_guest=email_expediteur
+            )
+
+            # Si l'utilisateur est connecté, on le lie aussi
+            if request.user.is_authenticated:
+                nouveau_msg.expediteur = request.user
+
+            nouveau_msg.save()
+
+            messages.success(request, 'Votre message a bien été envoyé.')
+            return redirect('blog:liste-articles')
+
+    else:
+        # (Cette partie reste identique à votre code actuel)
+        initial_data = {}
+        if request.user.is_authenticated:
+            initial_data['nom'] = request.user.pseudo or request.user.email
+            initial_data['email'] = request.user.email
         form = ContactForm(initial=initial_data)
 
     context = {'form': form}

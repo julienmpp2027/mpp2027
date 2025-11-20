@@ -14,12 +14,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # On lit la variable d'environnement 'ALLOWED_HOSTS'.
 # Si elle n'existe pas (comme en local), on met '127.0.0.1' par défaut.
 # La méthode .split(',') sépare notre "mpp2027.onrender.com,.onrender.com"
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
 # Application definition
 
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'hitcount',
     'storages',
+    'messagerie',
 ]
 
 MIDDLEWARE = [

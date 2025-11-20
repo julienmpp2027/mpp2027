@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Lecture du message{% endblock title %}
+
+{% block content %}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'messagerie:inbox' %}" class="nav-button-outline">
+            &laquo; Retour à la boîte de réception
+        </a>
+    </div>
+
+    <div class="message-container" style="border: 1px solid #ddd; border-radius: 8px; background: #fff; padding: 20px;">
+
+        <h2 style="margin-top: 0; color: #1C3047;">{{ message.sujet }}</h2>
+
+        <div class="message-meta" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; color: #666;">
+            <p><strong>De :</strong>
+                {% if message.expediteur %}
+                    <span style="color: #2c3e50; font-weight: bold;">{{ message.expediteur.pseudo|default:message.expediteur.email }}</span>
+                {% else %}
+                    <span style="color: #e67e22;">{{ message.nom_guest }} (Visiteur)</span>
+                    &lt;{{ message.email_guest }}&gt;
+                {% endif %}
+            </p>
+            <p><strong>Reçu le :</strong> {{ message.date_envoi|date:"d F Y à H:i" }}</p>
+        </div>
+
+        <div class="message-body" style="font-size: 1.1em; line-height: 1.6;">
+            {{ message.contenu|linebreaks }}
+        </div>
+
+    </div>
+
+    <div style="margin-top: 20px; text-align: right;">
+        <a href="{% url 'messagerie:nouveau' %}" class="nav-button-solid">
+            Répondre (Nouveau message)
+        </a>
+    </div>
+
+{% endblock content %}

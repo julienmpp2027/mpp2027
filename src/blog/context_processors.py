@@ -22,6 +22,7 @@ def nav_links(request):
             {'name': 'Mon Profil Public', 'url': reverse('blog:auteur-profil', kwargs={'pk': request.user.pk})},
             {'name': 'Modifier mon Profil', 'url': reverse('users:profile')},
             {'name': 'Écrire un article', 'url': reverse('blog:article-create')},
+            {'name': 'Ma Messagerie', 'url': reverse('messagerie:inbox')},
         ])
 
     # On retourne le dictionnaire.

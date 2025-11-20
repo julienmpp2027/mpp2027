@@ -84,16 +84,26 @@ class Article(models.Model):
         ordering = ['-date_creation']
 
     def save(self, *args, **kwargs):
-        # Génère automatiquement le slug à partir du titre
+        """
+        Surcharge de la méthode save pour générer le slug automatiquement.
+        """
+        # Si le slug n'est pas défini (ex : lors de la création)
         if not self.slug:
+            # 1. On transforme le titre en slug (ex : "Mon Super Titre" → "mon-super-titre")
             self.slug = slugify(self.titre)
-            # Assurer l'unicité (rare mais possible)
-            # Si un slug "mon-titre" existe, on crée "mon-titre-2"
+
+            # 2. Gestion des doublons (Collision)
+            # On sauvegarde le slug original pour s'en servir de base
             original_slug = self.slug
             count = 1
+
+            # Tant qu'un article avec ce slug existe DÉJÀ dans la base de données...
             while Article.objects.filter(slug=self.slug).exists():
+                # ... on ajoute un chiffre à la fin (ex: "mon-super-titre-1")
                 self.slug = f'{original_slug}-{count}'
                 count += 1
+
+        # Une fois le slug unique trouvé, on sauvegarde vraiment l'objet
         super().save(*args, **kwargs)
 
     def __str__(self):

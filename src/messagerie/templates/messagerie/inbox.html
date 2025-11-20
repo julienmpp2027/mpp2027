@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Ma Messagerie</h2>
+<a href="{% url 'messagerie:nouveau' %}" class="nav-button-solid">Écrire un message</a>
+<hr>
+{% for msg in messages_recus %}
+    <div style="padding: 10px; border-bottom: 1px solid #ccc; {% if not msg.lu %}background:#eef; font-weight:bold;{% endif %}">
+        <a href="{% url 'messagerie:lire' pk=msg.pk %}">
+            {{ msg.sujet }}
+        </a>
+        <br>
+        <small>
+            De :
+            {% if msg.expediteur %}
+                {{ msg.expediteur.pseudo }}
+            {% else %}
+                {{ msg.nom_guest }} (Visiteur)
+            {% endif %}
+             - {{ msg.date_envoi|date:"d/m/Y H:i" }}
+        </small>
+    </div>
+{% empty %}
+    <p>Aucun message reçu.</p>
+{% endfor %}
+{% endblock %}

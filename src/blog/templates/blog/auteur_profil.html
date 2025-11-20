@@ -29,6 +29,13 @@
                     utilisateur{{ auteur.id }}
                 {% endif %}
             </h1>
+            {% if user.is_authenticated and not is_owner %}
+                <div style="margin-top: 10px; margin-bottom: 10px;">
+                    <a href="{% url 'messagerie:nouveau' %}?to={{ auteur.pk }}" class="nav-button-solid">
+                        <i class="fas fa-envelope"></i> Envoyer un message
+                    </a>
+                </div>
+            {% endif %}
             <p>Membre depuis {{ auteur.date_joined|date:"F Y" }}</p>
 
             {% if auteur.description %}
