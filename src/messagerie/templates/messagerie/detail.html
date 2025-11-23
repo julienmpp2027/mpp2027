@@ -1,40 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}Lecture du message{% endblock title %}
+{% block title %}{{ message.sujet }}{% endblock title %}
 
 {% block content %}
+
+<div class="profile-layout" style="display: block; margin-top: 40px;">
+
     <div style="margin-bottom: 20px;">
-        <a href="{% url 'messagerie:inbox' %}" class="nav-button-outline">
-            &laquo; Retour à la boîte de réception
+        <a href="{% url 'messagerie:inbox' %}" style="color: white; text-decoration: none; font-weight: 600;">
+            &larr; Retour à la boîte de réception
         </a>
     </div>
 
-    <div class="message-container" style="border: 1px solid #ddd; border-radius: 8px; background: #fff; padding: 20px;">
+    <div class="dashboard-card" style="padding: 40px;">
 
-        <h2 style="margin-top: 0; color: #1C3047;">{{ message.sujet }}</h2>
+        <div class="message-reader-header" style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
+            <h1 style="margin-top: 0; color: var(--couleur-principale); font-size: 1.8em;">
+                {{ message.sujet }}
+            </h1>
 
-        <div class="message-meta" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; color: #666;">
-            <p><strong>De :</strong>
-                {% if message.expediteur %}
-                    <span style="color: #2c3e50; font-weight: bold;">{{ message.expediteur.pseudo|default:message.expediteur.email }}</span>
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+                {% if message.expediteur and message.expediteur.profile_picture %}
+                    <img src="{{ message.expediteur.profile_picture.url }}" class="mail-avatar-small" style="width: 50px; height: 50px;">
                 {% else %}
-                    <span style="color: #e67e22;">{{ message.nom_guest }} (Visiteur)</span>
-                    &lt;{{ message.email_guest }}&gt;
+                    <div class="mail-avatar-small" style="width: 50px; height: 50px; font-size: 1.5em;"><i class="fas fa-user"></i></div>
                 {% endif %}
-            </p>
-            <p><strong>Reçu le :</strong> {{ message.date_envoi|date:"d F Y à H:i" }}</p>
+
+                <div>
+                    <div style="font-weight: bold; color: #333; font-size: 1.1em;">
+                        {% if message.expediteur %}
+                            {{ message.expediteur.pseudo }}
+                        {% else %}
+                            {{ message.nom_guest }} <span style="font-weight: normal; color: #666;">&lt;{{ message.email_guest }}&gt;</span>
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 0.9em; color: #777;">
+                        Le {{ message.date_envoi|date:"l d F Y à H:i" }}
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="message-body" style="font-size: 1.1em; line-height: 1.6;">
-            {{ message.contenu|linebreaks }}
-        </div>
+        {% if message.expediteur %}
+
+            <div class="chat-container">
+                {% include "messagerie/message_bubble.html" with msg=message %}
+
+                {% for rep in reponses %}
+                    {% include "messagerie/message_bubble.html" with msg=rep %}
+                {% endfor %}
+            </div>
+
+            <form method="POST" style="border-top: 1px solid #eee; padding-top: 20px;">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="contenu_reponse" rows="3" style="width:100%; padding:15px; border-radius:10px; border:2px solid #eee; resize:none;" placeholder="Écrivez votre réponse..."></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 10px;">
+                    <button type="submit" class="btn-action red" style="border:none; cursor:pointer; padding: 10px 25px;">
+                        <i class="fas fa-paper-plane"></i> Envoyer
+                    </button>
+                </div>
+            </form>
+
+        {% else %}
+
+            <div class="message-reader-body" style="font-size: 1.1em; line-height: 1.6; color: #333; min-height: 100px;">
+                {{ message.contenu|linebreaks }}
+            </div>
+
+            <div style="border-top: 1px solid #eee; padding-top: 30px; margin-top: 30px; text-align: right;">
+                <a href="mailto:{{ message.email_guest }}?subject=Re: {{ message.sujet }}" class="btn-action outline" style="display: inline-block; border-color: #ccc; color: #333;">
+                    <i class="fas fa-envelope"></i> Répondre par Email
+                </a>
+            </div>
+
+        {% endif %}
 
     </div>
+</div>
 
-    <div style="margin-top: 20px; text-align: right;">
-        <a href="{% url 'messagerie:nouveau' %}" class="nav-button-solid">
-            Répondre (Nouveau message)
-        </a>
-    </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var chatBox = document.querySelector('.chat-container');
+        if(chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    });
+</script>
 
 {% endblock content %}

@@ -1,103 +1,227 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}
-    Profil de
-    {% if auteur.pseudo %}
-        {{ auteur.pseudo }}
-    {% else %}
-        user{{ auteur.id }}
-    {% endif %}
-{% endblock title %}
+{% block title %}Profil de {{ auteur.pseudo|default:auteur.email }}{% endblock title %}
 
 {% block content %}
 
-    <section class="profil-header" style="display: flex; align-items: center; margin-bottom: 20px;">
-        {% if auteur.profile_picture %}
-            <img src="{{ auteur.profile_picture.url }}" alt="Photo de {% if auteur.pseudo %}{{ auteur.pseudo }}{% else %}user{{ auteur.id }}{% endif %}"
-                 style="max-width: 150px; height: 150px; border-radius: 50%; margin-right: 20px; object-fit: cover;">
-        {% else %}
-            <div style="width: 150px; height: 150px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-size: 3em; color: #aaa;">
-                ?
-            </div>
-        {% endif %}
+<div class="profile-header-card">
+    <div class="profile-header-content">
 
-        <div>
-            <h1>
-                {% if auteur.pseudo %}
-                    {{ auteur.pseudo }}
-                {% else %}
-                    utilisateur{{ auteur.id }}
-                {% endif %}
-            </h1>
-            {% if user.is_authenticated and not is_owner %}
-                <div style="margin-top: 10px; margin-bottom: 10px;">
-                    <a href="{% url 'messagerie:nouveau' %}?to={{ auteur.pk }}" class="nav-button-solid">
-                        <i class="fas fa-envelope"></i> Envoyer un message
-                    </a>
-                </div>
-            {% endif %}
-            <p>Membre depuis {{ auteur.date_joined|date:"F Y" }}</p>
-
-            {% if auteur.description %}
-                <p><em>"{{ auteur.description }}"</em></p>
+        <div class="profile-avatar-container">
+            {% if auteur.profile_picture %}
+                <img src="{{ auteur.profile_picture.url }}" alt="Profil" class="profile-avatar-xl">
+            {% else %}
+                <div class="profile-avatar-xl default">{{ auteur.pseudo|first|upper }}</div>
             {% endif %}
         </div>
-    </section>
 
-    <hr>
+        <div class="profile-info">
+            <h1 class="profile-name">
+                {% if auteur.pseudo %}{{ auteur.pseudo }}{% else %}Utilisateur {{ auteur.id }}{% endif %}
+            </h1>
 
-    <section class="profil-articles">
+            <p class="profile-meta">
+                Membre depuis {{ auteur.date_joined|date:"Y" }} &bull;
+                {% if auteur.is_staff %}Administrateur{% else %}Membre actif{% endif %}
+            </p>
+
+            {% if auteur.description %}
+                <p class="profile-bio">{{ auteur.description }}</p>
+            {% endif %}
+        </div>
 
         {% if is_owner %}
-            <h2>Vos articles (Brouillons et Publiés)</h2>
+        <div class="profile-actions">
+            <a href="{% url 'users:profile' %}" class="btn-action red">Modifier mon profil</a>
+            <a href="{% url 'blog:article-create' %}" class="btn-action outline">Nouvel Article</a>
+        </div>
         {% else %}
-            <h2>Articles écrits par {{ auteur.pseudo|default:"lui" }}</h2>
+        <div class="profile-actions">
+             <a href="{% url 'messagerie:nouveau' %}?to={{ auteur.pk }}" class="btn-action red">
+                <i class="fas fa-envelope"></i> Contacter
+            </a>
+        </div>
         {% endif %}
+    </div>
+</div>
 
+<div class="profile-tabs">
+    <button class="tab-btn active" onclick="openTab(event, 'tab-articles')">
+        MES ARTICLES
+    </button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-commentaires')">
+        MES COMMENTAIRES
+    </button>
+</div>
 
-        {% for article in articles_auteur %}
-            <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #eee;">
+<div class="profile-layout">
 
-                {% if article.statut == 'DRAFT' %}
-                    <strong style="color: #orange;">(BROUILLON)</strong>
-                {% endif %}
+    <div class="profile-main">
 
-                <a href="{{ article.get_absolute_url }}">{{ article.titre }}</a>
-                <br>
-                <small>Publié le {{ article.date_creation|date:"d M Y" }}</small>
+        <div id="tab-articles" class="tab-content active">
+            {% for article in page_articles %}
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3 class="dashboard-card-title">
+                        <a href="{{ article.get_absolute_url }}">{{ article.titre }}</a>
+                    </h3>
+                    <span class="dashboard-date">Posté le {{ article.date_creation|date:"d/m/Y à H:i" }}</span>
+                </div>
 
-                {% if article.statut == 'DRAFT' %}
-                    [ <a href="{% url 'blog:article-update' slug=article.slug %}">Modifier mon brouillon</a> ]
-                {% endif %}
-
-            </div>
-        {% empty %}
-            {% if is_owner %}
-                 <p>Vous n'avez pas encore écrit d'article.
-                 <a href="{% url 'admin:blog_article_add' %}">Commencez ici !</a></p>
-            {% else %}
-                <p>{{ auteur.pseudo|default:"Cet utilisateur" }} n'a pas encore publié d'article.</p>
-            {% endif %}
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section class="profil-commentaires">
-        <h2>Commentaires récents</h2>
-
-        {% for commentaire in commentaires_auteur %}
-            <div style="padding: 10px; border: 1px solid #eee; margin-bottom: 10px;">
-                <p>Sur l'article <a href="{{ commentaire.article.get_absolute_url }}#commentaire-{{ commentaire.pk }}">
-                    {{ commentaire.article.titre }}</a> :
+                <p class="dashboard-preview">
+                    {{ article.contenu|striptags|truncatewords:25 }}
                 </p>
-                <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; font-style: italic;">
-                    {{ commentaire.contenu|truncatewords:30 }}
-                </blockquote>
+
+                <div class="dashboard-footer">
+                    {% if article.statut == 'PUBLISHED' %}
+                        <span class="badge badge-green">Publié</span>
+                    {% else %}
+                        <span class="badge badge-orange">Brouillon</span>
+                    {% endif %}
+
+                    {% if is_owner %}
+                    <div class="dashboard-controls">
+                        <a href="{% url 'blog:article-update' slug=article.slug %}">
+                            <i class="fas fa-pencil-alt"></i> Modifier
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        {% empty %}
-            <p>{{ auteur.pseudo|default:"Cet utilisateur" }} n'a pas encore commenté.</p>
-        {% endfor %}
-    </section>
+            {% empty %}
+            <div class="empty-state">
+                <p>Aucun article publié pour le moment.</p>
+            </div>
+            {% endfor %}
+
+            {% if page_articles.has_other_pages %}
+            <div class="pagination-container">
+                {% if page_articles.has_previous %}
+                    <a href="?page_articles={{ page_articles.previous_page_number }}" class="pagination-btn">&laquo;</a>
+                {% endif %}
+
+                <span class="pagination-info">Page {{ page_articles.number }} sur {{ page_articles.paginator.num_pages }}</span>
+
+                {% if page_articles.has_next %}
+                    <a href="?page_articles={{ page_articles.next_page_number }}" class="pagination-btn">&raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div id="tab-commentaires" class="tab-content" style="display: none;">
+            {% for comm in page_comments %}
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h3 class="dashboard-card-title" style="font-size: 0.95em;">
+                        Sur l'article : <a href="{{ comm.article.get_absolute_url }}">{{ comm.article.titre|truncatewords:6 }}</a>
+                    </h3>
+                    <span class="dashboard-date">{{ comm.date_creation|date:"d/m/y H:i" }}</span>
+                </div>
+
+                <div class="dashboard-preview" style="font-style: italic; color: #555;">
+                    "{{ comm.contenu|truncatewords:20 }}"
+                </div>
+
+                <div class="dashboard-footer">
+                    <span class="badge badge-blue">Commentaire</span>
+                    <a href="{{ comm.article.get_absolute_url }}#commentaire-{{ comm.pk }}" class="link-view" style="font-size:0.85em;">
+                        Voir la discussion &rarr;
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <p>Aucun commentaire posté.</p>
+            </div>
+            {% endfor %}
+
+            {% if page_comments.has_other_pages %}
+            <div class="pagination-container">
+                {% if page_comments.has_previous %}
+                    <a href="?page_comments={{ page_comments.previous_page_number }}" class="pagination-btn">&laquo;</a>
+                {% endif %}
+
+                <span class="pagination-info">Page {{ page_comments.number }} sur {{ page_comments.paginator.num_pages }}</span>
+
+                {% if page_comments.has_next %}
+                    <a href="?page_comments={{ page_comments.next_page_number }}" class="pagination-btn">&raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <aside class="profile-sidebar">
+
+        <div class="stats-card">
+            <h4>STATISTIQUES</h4>
+
+            <div class="stat-row">
+                <div class="stat-icon bg-blue"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-info">
+                    <strong>{{ total_articles }}</strong>
+                    <span>Articles publiés</span>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-icon bg-red"><i class="fas fa-comments"></i></div>
+                <div class="stat-info">
+                    <strong>{{ total_comments }}</strong>
+                    <span>Commentaires postés</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-card">
+            <h4>DERNIERS COMMENTAIRES</h4>
+            {% for comm in sidebar_comments %}
+                <div style="margin-bottom: 15px; font-size: 0.9em; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px;">
+                    Sur "<strong>{{ comm.article.titre|truncatewords:4 }}</strong>" :<br>
+                    <span style="opacity: 0.7; font-style: italic;">"{{ comm.contenu|truncatewords:10 }}"</span>
+                </div>
+            {% empty %}
+                <p style="opacity: 0.6; font-size: 0.9em;">Aucun commentaire récent.</p>
+            {% endfor %}
+        </div>
+
+    </aside>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Si l'URL contient "page_comments", on ouvre l'onglet commentaires automatiquement
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('page_comments')) {
+        // On simule un clic sur le 2ème bouton (Commentaires)
+        const tabs = document.querySelectorAll('.tab-btn');
+        if(tabs.length > 1) tabs[1].click();
+    }
+});
+
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+
+    // 1. Cacher tous les contenus
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // 2. Désactiver tous les boutons
+    tablinks = document.getElementsByClassName("tab-btn");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // 3. Afficher le bon contenu et activer le bouton
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+</script>
 
 {% endblock content %}

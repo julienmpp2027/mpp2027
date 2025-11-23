@@ -162,25 +162,24 @@ class UserPasswordResetForm(PasswordResetForm):
 # -------------------------------------------------------------
 class UserProfileForm(forms.ModelForm):
     """
-    Formulaire pour que l'utilisateur modifie ses propres
-    informations de profil.
+    Formulaire profil utilisateur.
     """
 
     class Meta:
         model = CustomUser
-
-        # On liste les champs modifiables.
-        # PAS d'email, PAS de mot de passe, PAS de is_staff.
         fields = ('pseudo', 'description', 'profile_picture')
 
+        # AJOUT : On force le widget simple (FileInput) pour éviter le texte "Currently..."
+        widgets = {
+            'profile_picture': forms.FileInput(),
+        }
+
     def __init__(self, *args, **kwargs):
-        """
-        Un peu de cosmétique...
-        """
         super().__init__(*args, **kwargs)
         self.fields['description'].widget = forms.Textarea(attrs={'rows': 4})
         self.fields['description'].label = "Courte description"
         self.fields['profile_picture'].label = "Photo de profil"
+        # On retire les textes d'aide comme demandé
         self.fields['pseudo'].help_text = None
         self.fields['description'].help_text = None
         self.fields['profile_picture'].help_text = None

@@ -77,44 +77,28 @@ def register_view(request):
 
 @login_required  # <-- LE GARDE DU CORPS
 def profile_view(request):
-    """
-    Affiche le profil de l'utilisateur connecté et
-    permet de le mettre à jour.
-    """
-
-    # On récupère l'utilisateur connecté
     user = request.user
 
-    # Logique de soumission (POST)
     if request.method == 'POST':
-        # On crée un formulaire AVEC les données envoyées (request.POST) ET les fichiers envoyés (request.FILES) ->
-        # important pour la photo ! ET on le lie à l'instance de l'utilisateur (instance=user) pour que Django sache
-        # qu'on MODIFIE, et qu'on ne CRÉE PAS.
         form = UserProfileForm(request.POST, request.FILES, instance=user)
 
         if form.is_valid():
-            form.save()  # Enregistre les modifs dans la BDD
+            # --- LOGIQUE DE SUPPRESSION MANUELLE ---
+            # Si la case "delete_image" est cochée dans le HTML
+            if request.POST.get('delete_image'):
+                # On efface l'image de l'utilisateur
+                user.profile_picture.delete(save=False)
 
-            # C'est bien de confirmer que ça a marché.
+            form.save()
             messages.success(request, 'Votre profil a été mis à jour avec succès !')
+            return redirect('blog:auteur-profil', pk=user.pk)
 
-            # On redirige vers la MÊME page
-            return redirect('users:profile')
-
-        # Si le formulaire n'est pas valide, on "tombe" vers le 'render'
-        # en bas, et 'form' contiendra les erreurs.
-
-    # Logique d'affichage (GET)
     else:
-        # On crée un formulaire pré-rempli avec les
-        # infos de l'utilisateur (instance=user).
         form = UserProfileForm(instance=user)
 
-    # On prépare le contexte
     context = {
         'form': form
     }
-
     return render(request, 'users/profile.html', context)
 
 

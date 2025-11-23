@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (ArticleListView, ArticleDetailView, CategorieArticleListView, AuteurProfileView,
-                    article_create_view, ArticleUpdateView,contact_view)
+                    article_create_view, ArticleUpdateView,contact_view, ToutesActualitesView)
 
 
 # On donne un "espace de nom" à notre app
@@ -17,6 +17,7 @@ urlpatterns = [
     path('auteur/<int:pk>/', AuteurProfileView.as_view(), name='auteur-profil'),
     path('modifier/<slug:slug>/', ArticleUpdateView.as_view(), name='article-update'),
     path('contact/', contact_view, name='contact'),
+    path('actualites/', ToutesActualitesView.as_view(), name='toutes-actualites'),
     path('<slug:slug>/', ArticleDetailView.as_view(), name='detail-article'),
 
 ]

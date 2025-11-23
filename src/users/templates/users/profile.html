@@ -1,38 +1,128 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Mon Profil{% endblock title %}
+{% block title %}Modifier mon profil{% endblock title %}
 
 {% block content %}
-    <h2>Mon Profil</h2>
-    <p>Modifiez vos informations publiques ici.</p>
 
-    {% if user.profile_picture %}
-        <div style="margin-bottom: 20px;">
-            <h3>Photo de profil actuelle :</h3>
-            <img src="{{ user.profile_picture.url }}" alt="{{ user.pseudo|default:user.email }}" style="max-width: 150px; height: auto; border-radius: 5px;">
+<div class="profile-header-card">
+    <div class="profile-header-content" style="align-items: flex-start;">
+        <div class="profile-info">
+            <h1 class="profile-name" style="margin-bottom: 15px;">Modifier mon profil</h1>
+            <p class="profile-bio" style="color: rgba(255,255,255,0.8); max-width: none;">
+                Mettez à jour vos informations publiques et votre photo de présentation.
+            </p>
         </div>
-    {% endif %}
-
-    <form method="POST" enctype="multipart/form-data">
-        <!-- cet enctype est le seul moyen pour le navigateur de dire
-         à Django : "Attention, je n'envoie pas que du texte, j'envoie aussi un fichier (request.FILES) !".-->
-        {% csrf_token %}
-
-        {{ form.as_p }}
-
-        <button type="submit">Mettre à jour</button>
-    </form>
-
-
-    <!--  LIEN POUR SUPPRIMER UN UTILISATEUR  -->
-    <hr style="margin-top: 30px;">
-
-    <div class="danger-zone" style="margin-top: 20px; padding: 15px; border: 1px solid #cc0000; background: #fff0f0;">
-        <h3>Zone de danger</h3>
-        <p>Supprimer votre compte est une action irréversible. Tout votre profil sera effacé.</p>
-        <a href="{% url 'users:profile-delete' %}" style="color: #cc0000; font-weight: bold;">
-            Je veux supprimer mon compte
-        </a>
     </div>
+</div>
 
+<div class="profile-layout" style="display: block;">
+    <div class="profile-main">
+        <div class="dashboard-card" style="padding: 30px;">
+
+            <form method="POST" enctype="multipart/form-data" class="edit-profile-form">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p style="margin: 0;">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.pseudo.id_for_label }}">{{ form.pseudo.label }}</label>
+                    {{ form.pseudo }}
+                    {% if form.pseudo.errors %}
+                        <div class="field-errors">
+                            {% for error in form.pseudo.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="field-errors">
+                            {% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                 <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="field-errors">
+                            {% for error in form.description.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group photo-upload-group" style="margin-top: 30px;">
+                    <label>{{ form.profile_picture.label }}</label>
+
+                    <div class="photo-upload-widget">
+                        <div class="current-photo">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Photo" class="profile-avatar-xl">
+                            {% else %}
+                                <div class="profile-avatar-xl default">{{ user.pseudo|first|upper }}</div>
+                            {% endif %}
+                            </div>
+
+                        <div class="upload-field-container">
+                            {{ form.profile_picture }}
+
+                            {% if user.profile_picture %}
+                                <div class="clear-checkbox-container" style="margin-top: 10px;">
+                                    <input type="checkbox" name="delete_image" id="delete_img_id">
+                                    <label for="delete_img_id" style="display:inline; font-weight:normal; margin-left:8px; cursor:pointer;">
+                                        Supprimer la photo actuelle
+                                    </label>
+                                </div>
+                            {% endif %}
+
+                             {% if form.profile_picture.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.profile_picture.errors %}<span>{{ error }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 30px; display: flex; align-items: center;">
+                    <button type="submit" class="btn-action red" style="border: none; cursor: pointer; font-size: 1.1em; padding: 12px 30px; display: inline-flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-save"></i> Enregistrer les modifications
+                    </button>
+                     <a href="{% url 'blog:auteur-profil' pk=user.pk %}" style="margin-left: 30px; color: #777; text-decoration: none; font-weight: 500;">
+                        Annuler
+                    </a>
+                </div>
+
+            </form>
+            <div class="dashboard-card" style="padding: 30px; margin-top: 30px; border-left: 5px solid var(--couleur-tertiaire);">
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+
+                <p style="color: #333; margin: 0; font-size: 1.05em;">
+                    <strong>Vous souhaitez nous quitter ?</strong><br>
+                    <span style="font-size: 0.9em; opacity: 0.8;">
+                        Vos informations de profil seront supprimées. Vos articles et commentaires ne seront pas effacés mais ne seront plus liés à aucun utilisateur.
+                    </span>
+                </p>
+
+                <a href="{% url 'users:profile-delete' %}" style="color: var(--couleur-tertiaire); font-weight: bold; text-decoration: underline;">
+                    Je veux supprimer mon compte
+                </a>
+            </div>
+        </div>
+
+        </div>
+
+    </div>
+</div>
 {% endblock content %}

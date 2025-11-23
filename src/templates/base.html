@@ -12,7 +12,7 @@
     </title>
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <!-- LIEN POUR LES ICONES-->
+
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -21,166 +21,143 @@
         referrerpolicy="no-referrer"
     />
 
-    <!-- pour inclure de nouvelles balise meta (par exemple pour le partage)-->
     {% block extra_meta %}
     {% endblock extra_meta %}
 
-    </head>
-    <body>
-        <nav class="navbar">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-container">
 
             <div class="navbar-left">
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-button-outline" id="menu-toggle-button"> <i class="fas fa-bars"></i>
-                        <span style="margin-left: 8px;">Menu</span>
-                    </a>
-                    <div class="nav-dropdown-content" id="menu-dropdown-content">
-                        {% for link in main_nav_links %}
-                            <a href="{{ link.url }}">{{ link.name }}</a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="navbar-center">
-                <a href="{% url 'blog:liste-articles' %}" class="nav-logo">
-
-                <img src="{% static 'img/logo_blanc.png' %}"
-                    alt="MPP2027 Logo"
-                    class="nav-logo-img">
-
+                <a href="{% url 'blog:liste-articles' %}">
+                    <img src="{% static 'img/mon_logo.png' %}" alt="MPP 2027" class="nav-logo-img">
                 </a>
             </div>
 
-            <div class="navbar-right">
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+
+            <div class="navbar-center" id="navbar-links">
+                <a href="{% url 'blog:liste-articles' %}">Accueil</a>
+
+                <a href="{% url 'blog:articles-par-categorie' slug_categorie='programme' %}">Le Projet</a>
+                <a href="{% url 'blog:toutes-actualites' %}">Actualités</a>
+                <a href="{% url 'blog:contact' %}">Contact</a>
 
                 {% if user.is_authenticated %}
-                    <a href="{% url 'messagerie:inbox' %}" style="margin-right: 15px; color: white; font-size: 1.2em;" title="Mes messages">
-                        <i class="fas fa-envelope"></i>
-                    </a>
-                    <a href="{% url 'blog:auteur-profil' pk=user.pk %}" class="navbar-profile-link">
+                    <form action="{% url 'users:logout' %}" method="POST" class="mobile-only-logout">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-logout-btn">
+                            Déconnexion
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="mobile-only-link">Connexion</a>
+                {% endif %}
+            </div>
 
+            <div class="navbar-right">
+                {% if user.is_authenticated %}
+
+                    <a href="{% url 'messagerie:inbox' %}" class="nav-icon-link" title="Mes messages">
+                        <i class="fas fa-envelope"></i>
+                        {% if unread_count > 0 %}
+                            <span class="nav-badge">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{% url 'blog:auteur-profil' pk=user.pk %}" class="navbar-profile-link">
                         {% if user.profile_picture %}
                             <img src="{{ user.profile_picture.url }}" alt="Profil" class="navbar-profile-pic">
                         {% else %}
-                            <i class="fas fa-user-circle navbar-profile-pic default-icon"></i>
+                            <div class="navbar-profile-pic default-nav-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
                         {% endif %}
-
-                        <span>{{ user.pseudo|default:user.email }}</span>
+                        <span class="desktop-only">{{ user.pseudo|default:user.email }}</span>
                     </a>
 
-                    <form action="{% url 'users:logout' %}" method="POST" class="logout-form">
+                    <form action="{% url 'users:logout' %}" method="POST" style="margin:0;" class="desktop-only">
                         {% csrf_token %}
-                        <button type="submit" class="nav-button-logout" title="Se déconnecter">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
+                        <button type="submit" class="btn-outline-white">Déconnexion</button>
                     </form>
 
                 {% else %}
-                <div style="display: flex; align-items: center;">
-                    <a href="{% url 'users:register' %}" class="nav-button-outline" style="margin-right: 15px;">
-                        S'inscrire
-                    </a>
-                    <a href="{% url 'users:login' %}" class="nav-button-solid">
-                        Connexion
-                    </a>
-                </div>
-            {% endif %}
-
-            </div>
-        </nav>
-        <div class="container">
-
-            <main>
-                {% if messages %}
-                    <ul class="messages" style="list-style-type: none; padding: 0;">
-                        {% for message in messages %}
-                            <li style="padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; background: #f9f9f9; color: #333;">
-                                {{ message }}
-                            </li>
-                        {% endfor %}
-                    </ul>
+                    <div class="desktop-only">
+                        <a href="{% url 'users:register' %}" class="btn-white">S'inscrire</a>
+                        <a href="{% url 'users:login' %}" class="btn-red">Connexion</a>
+                    </div>
                 {% endif %}
-
-                {% block content %}
-                {% endblock content %}
-            </main>
+            </div>
 
         </div>
+    </nav>
 
-<!-- ============================================================================================================== -->
-<!-- ===========================              FOOTER                  ============================================= -->
+
+    <div class="container">
+
+        <main>
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle" style="margin-right: 10px;"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle" style="margin-right: 10px;"></i>
+                            {% endif %}
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% block content %}
+            {% endblock content %}
+        </main>
+
+    </div>
+
+
     <footer class="main-footer">
         <div class="footer-content">
 
-            <div class="footer-column">
-                <h4>À propos de mpp2027</h4>
-                <p style="opacity: 0.8;">
-                    Un blog pour partager des idées, des programmes et
-                    des réactions sur l'actualité.
-                </p>
+            <div class="footer-links">
+                <a href="{% url 'blog:contact' %}">Contact</a>
+                <span class="separator-dot">&bull;</span>
+                <a href="#">Mentions Légales</a>
+                <span class="separator-dot">&bull;</span>
+                <a href="#" title="Bientôt disponible">Programme Complet (PDF)</a>
             </div>
 
-            <div class="footer-column">
-                <h4>Liens rapides</h4>
-                <ul>
-                    <li><a href="{% url 'blog:liste-articles' %}">Accueil</a></li>
-                    <li><a href="{% url 'blog:contact' %}">Me Contacter</a></li>
-
-                    {% if user.is_authenticated %}
-                        <li><a href="{% url 'blog:article-create' %}">Écrire un article</a></li>
-                    {% endif %}
-
-                    </ul>
+            <div class="footer-socials">
+                <a href="https://x.com/mpp2027" target="_blank" title="X (Twitter)">
+                    <i class="fab fa-x-twitter"></i>
+                </a>
+                <a href="#" target="_blank" title="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="https://github.com/julienmpp2027" target="_blank" title="GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
             </div>
 
-            <div class="footer-column">
-                <h4>Suivez-moi</h4>
-                <div class="footer-socials">
-                    <a href="https://x.com/mpp2027" title="X (Twitter)" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-x-twitter"></i>
-                    </a>
-                    <a href="#" title="LinkedIn" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-linkedin-in"></i>
-                    </a>
-                    <a href="https://github.com/julienmpp2027" title="GitHub" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-github"></i>
-                    </a>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="footer-bottom">
-            &copy; 2025 - mpp2027 - mon p'tit programme
         </div>
     </footer>
 
+
     <script>
-        // On attend que la page soit chargée
-        document.addEventListener('DOMContentLoaded', function() {
-
-        // On trouve le bouton et le menu
-        const menuButton = document.getElementById('menu-toggle-button');
-        const menuDropdown = document.getElementById('menu-dropdown-content');
-
-        // On écoute le CLIC sur le bouton
-        menuButton.addEventListener('click', function(event) {
-            // On empêche le lien <a> de remonter en haut de la page
-            event.preventDefault();
-
-            // On ajoute ou on enlève la classe "is-open"
-            menuDropdown.classList.toggle('is-open');
-        });
-
-        // (Bonus : ferme le menu si on clique n'importe où ailleurs)
-        window.addEventListener('click', function(event) {
-            if (!menuButton.contains(event.target)) {
-                menuDropdown.classList.remove('is-open');
-            }
-        });
-    });
+        // Fonction simple pour ouvrir/fermer le menu mobile
+        function toggleMobileMenu() {
+            const menu = document.getElementById('navbar-links');
+            menu.classList.toggle('active');
+        }
     </script>
-    </body>
-</html>
 
+</body>
+</html>

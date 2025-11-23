@@ -92,6 +92,25 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'  # Définit 'email' comme champ de connexion
     REQUIRED_FIELDS = []  # Champs requis lors de 'createsuperuser' (aucun en plus de l'email/mdp)
 
+    def save(self, *args, **kwargs):
+        """
+        Surcharge de la sauvegarde :
+        Si le pseudo est vide, on génère automatiquement 'user' + l'ID (ex: user15).
+        """
+        # 1. On effectue la sauvegarde standard d'abord
+        # (C'est indispensable pour avoir un self.pk / ID si c'est une création)
+        super().save(*args, **kwargs)
+
+        # 2. Vérification post-sauvegarde
+        if not self.pseudo:
+            # On génère le pseudo avec l'ID qu'on vient d'obtenir
+            generated_pseudo = f"user{self.pk}"
+            self.pseudo = generated_pseudo
+
+            # 3. On met à jour seulement le champ pseudo en base de données
+            # (On utilise .filter().update() pour éviter une boucle de sauvegarde infinie)
+            self.__class__.objects.filter(pk=self.pk).update(pseudo=generated_pseudo)
+
     def __str__(self):
         return self.email
 

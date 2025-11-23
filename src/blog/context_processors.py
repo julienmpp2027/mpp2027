@@ -1,4 +1,5 @@
 from django.urls import reverse
+from messagerie.models import Message
 
 #######################################################################################################################
 # ##                             FONCTION POUR GERER LES LIEN DU MENU DE LA NAVBAR                                 ## #
@@ -30,3 +31,17 @@ def nav_links(request):
     return {
         'main_nav_links': links
     }
+
+
+def unread_messages_count(request):
+    """
+    Ajoute le nombre de messages non lus au contexte global.
+    Disponible partout sous la variable {{ unread_count }}
+    """
+    if request.user.is_authenticated:
+        # On compte les messages reçus qui ne sont pas lus
+        count = Message.objects.filter(destinataire=request.user, lu=False).count()
+        return {'unread_count': count}
+
+    # Si pas connecté, 0 message
+    return {'unread_count': 0}

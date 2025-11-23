@@ -1,38 +1,66 @@
 {% extends 'base.html' %}
+{% load socialaccount %}
 
-{% block title %}Connexion - Mon Super Blog{% endblock title %}
+{% block title %}Connexion - MPP 2027{% endblock title %}
 
 {% block content %}
-    {% load socialaccount %}
-    <h2>Connexion</h2>
 
-    <div class="social-login" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #eee; text-align: center;">
-        <p>Connexion rapide via Google :</p>
+<div class="auth-layout">
 
-        <a href="{% provider_login_url 'google' %}" style="text-decoration: none; padding: 10px 15px; background: #4285F4; color: white; border-radius: 5px;">
-            <i class="fab fa-google"></i> Se connecter avec Google
+    <h1 style="text-align: center; color: var(--couleur-secondaire); margin-bottom: 30px; font-weight: 800; text-transform: uppercase;">
+        Bon retour parmi nous
+    </h1>
+
+    <div class="dashboard-card" style="padding: 40px;">
+
+        <a href="{% provider_login_url 'google' %}" class="btn-google">
+            <i class="fab fa-google"></i> Continuer avec Google
         </a>
+
+        <div class="separator">ou avec votre email</div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" style="text-align: center;">
+                    <i class="fas fa-exclamation-triangle"></i> Email ou mot de passe incorrect.
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Adresse email</label>
+                {{ form.username }} {% if form.username.errors %}
+                    <div class="field-errors">{{ form.username.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="field-errors">{{ form.password.errors }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-action red" style="width: 100%; margin-top: 20px; border: none; cursor: pointer; font-size: 1.1em; padding: 15px;">
+                Se connecter
+            </button>
+
+        </form>
+
     </div>
-    <hr style="margin: 20px 0;">
-    <p style="text-align: center;">...ou connectez-vous avec votre email :</p>
 
-    {% if form.errors %}
-        <p style="color: red;">
-            Votre adresse email ou votre mot de passe est incorrect. 
-            Veuillez réessayer.
+    <div class="auth-links">
+        <p style="margin-bottom: 10px;">
+            <a href="{% url 'users:password_reset' %}">Mot de passe oublié ?</a>
         </p>
-    {% endif %}
+        <p>
+            Pas encore de compte ?
+            <a href="{% url 'users:register' %}" style="font-weight: bold;">Créer un compte</a>
+        </p>
+    </div>
 
-    <form method="POST">
-        {% csrf_token %}
-        
-        {{ form.as_p }}
-        
-        <button type="submit">Se connecter</button>
-    </form>
+</div>
 
-    <p style="margin-top: 15px;">
-        <a href="{% url 'users:password_reset' %}">Mot de passe oublié ?</a>
-    </p>
-
-    {% endblock content %}
+{% endblock content %}

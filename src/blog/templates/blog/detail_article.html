@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
-
-
+{% load hitcount_tags %}
 
 {% block extra_meta %}
     <meta property="og:title" content="{{ article.titre }}">
@@ -8,208 +7,220 @@
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ absolute_url }}">
     {% if absolute_image_url %}
-    <meta property="og:image" content="{{ absolute_image_url }}">
+        <meta property="og:image" content="{{ absolute_image_url }}">
+        <meta name="twitter:image" content="{{ absolute_image_url }}">
     {% endif %}
-
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ article.titre }}">
     <meta name="twitter:description" content="{{ article.contenu|striptags|truncatewords:30 }}">
-    {% if absolute_image_url %}
-        <meta name="twitter:image" content="{{ absolute_image_url }}">
-    {% endif %}
 {% endblock extra_meta %}
 
-
 {% block title %}
-    Accueil - Mon Super Article
+    {{ article.titre }} - MPP 2027
 {% endblock title %}
 
 {% block content %}
-    {% load hitcount_tags %}
 
-    {% if article.statut == 'DRAFT' and user == article.auteur %}
-        <div class="draft-warning" style="padding: 15px; border: 2px solid #orange; background: #fff8e1; color: #8a6d3b; margin-bottom: 20px;">
-            <strong>Ceci est un BROUILLON.</strong>
-            Vous seul(e) pouvez voir cet article. Il n'est pas visible par le public.
-            <a href="{% url 'blog:article-update' slug=article.slug %}">
-                Modifier ce brouillon
-            </a>
-            {% if user.is_staff %}
-    |           <a href="{% url 'admin:blog_article_change' article.pk %}">Publier (Admin)</a>
+    <div class="article-layout">
+
+        <main class="article-main-column">
+
+            {% if article.image_banniere %}
+                <div class="article-banner-container">
+                    <img src="{{ article.image_banniere.url }}" alt="{{ article.titre }}" class="article-banner-img">
+                </div>
             {% endif %}
-        </div>
-    {% endif %}
-    <!-- -------------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------ AFFICHAGE DE L'ARTICLE ------------------------------------------------------------
-    ------------------------------------------------------------------------------------------------------------------------------------ -->
-    <article>
-        <h1>{{ article.titre }}</h1>
-        <p>
-            <em>
-                Écrit par
+
+            <header class="article-header">
+
+                {% if article.statut == 'DRAFT' %}
+                    <div style="background-color: #ff9800; color: black; display: inline-block; padding: 5px 15px; border-radius: 4px; font-weight: bold; margin-bottom: 15px; font-size: 0.9em;">
+                        <i class="fas fa-pen-ruler"></i> MODE BROUILLON - Visible uniquement par vous
+                    </div>
+                {% endif %}
+
+                <h1 class="article-title">{{ article.titre }}</h1>
+
+                <div class="article-meta">
+                    <span><i class="fas fa-user-circle"></i> {{ article.auteur.pseudo|default:"Rédaction" }}</span>
+                    <span>&bull;</span>
+                    <span>{{ article.date_creation|date:"d F Y" }}</span>
+                    <span>&bull;</span>
+                    <span><i class="fas fa-eye"></i> {% get_hit_count for article %} vues</span>
+                </div>
+            </header>
+
+            <div class="article-content">
+                {{ article.contenu|safe }}
+            </div>
+
+            {% if article.statut == 'PUBLISHED' %}
+            <div class="share-footer" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div class="social-share" style="justify-content: flex-end;">
+                    <span style="margin-right: 10px; font-weight: normal; opacity: 0.8;">Vous avez aimé ? Partagez :</span>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ absolute_url|urlencode }}" target="_blank" title="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url={{ absolute_url|urlencode }}&text={{ article.titre|urlencode }}" target="_blank" title="X (Twitter)">
+                        <i class="fab fa-x-twitter"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 40px 0;">
+
+            {% if article.statut == 'PUBLISHED' %}
+            <section class="commentaires-section">
+                <h3 style="color:white; margin-top:0; margin-bottom: 20px;">
+                    <i class="far fa-comments"></i> Discussion ({{ commentaires.count }})
+                </h3>
+
+                <div class="comment-list">
+                    {% for comm in commentaires %}
+                        <div class="comment-item">
+
+                            <div class="comment-avatar">
+                                {% if comm.auteur %}
+                                    <a href="{% url 'blog:auteur-profil' pk=comm.auteur.pk %}" class="comment-author-link" title="Voir le profil">
+                                        {% if comm.auteur.profile_picture %}
+                                            <img src="{{ comm.auteur.profile_picture.url }}" alt="Avatar">
+                                        {% else %}
+                                            <div class="default-avatar"><i class="fas fa-user"></i></div>
+                                        {% endif %}
+                                    </a>
+                                {% else %}
+                                    <div class="comment-author-link" style="cursor: default;">
+                                        <div class="default-avatar"><i class="fas fa-user"></i></div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="comment-body">
+                                <strong>
+                                    {% if comm.auteur %}
+                                        <a href="{% url 'blog:auteur-profil' pk=comm.auteur.pk %}" class="comment-name-link">
+                                            {{ comm.auteur.pseudo|default:"Utilisateur" }}
+                                        </a>
+                                    {% else %}
+                                        <span style="color: #aaa; font-style: italic;">Utilisateur Supprimé</span>
+                                    {% endif %}
+                                </strong>
+
+                                <span class="comment-date">{{ comm.date_creation|timesince }}</span>
+                                <p>{{ comm.contenu }}</p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p style="opacity: 0.6; text-align: center;">Soyez le premier à réagir à cet article !</p>
+                    {% endfor %}
+                </div>
+
+                {% if user.is_authenticated %}
+                    <form method="POST" class="comment-form" style="margin-top: 20px;">
+                        {% csrf_token %}
+                        {{ comment_form.contenu }}
+                        <div style="text-align: right; margin-top: 10px;">
+                            <button type="submit" class="btn-action red" style="border:none; cursor:pointer; padding: 10px 25px; font-size:1em;">
+                                Publier
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="login-to-comment">
+                        Vous devez être <a href="{% url 'users:login' %}">connecté</a> pour laisser un commentaire.
+                    </div>
+                {% endif %}
+
+            </section>
+            {% else %}
+                <p style="text-align: center; color: rgba(255,255,255,0.5); margin-top: 30px; font-style: italic;">
+                    Les commentaires et le partage sont désactivés en mode brouillon.
+                </p>
+            {% endif %}
+
+        </main>
+
+
+        <aside class="article-sidebar">
+
+            <div class="sidebar-widget">
+                <h4>Catégories</h4>
+                <div class="tags-cloud">
+                    {% for cat in article.categories.all %}
+                        <a href="{% url 'blog:articles-par-categorie' slug_categorie=cat.slug %}" class="tag-pill">
+                            {{ cat.nom }}
+                        </a>
+                    {% empty %}
+                        <span style="font-size: 0.9em; opacity: 0.7;">Aucune catégorie</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="sidebar-widget author-widget" style="padding: 0;">
+
                 {% if article.auteur %}
-                    <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}">
-                    {% if article.auteur.pseudo %}
-                        {{ article.auteur.pseudo }}
-                    {% else %}
-                        utilisateur{{ article.auteur.id }}
-                    {% endif %}
+                    <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}" class="author-card-link" style="padding: 20px;">
+                        <div class="author-flex-container">
+                            <div class="author-visual">
+                                {% if article.auteur.profile_picture %}
+                                    <img src="{{ article.auteur.profile_picture.url }}" class="author-img-large">
+                                {% else %}
+                                     <div class="author-img-large default"><i class="fas fa-user"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="author-details">
+                                <h5 class="author-name">{{ article.auteur.pseudo|default:"L'équipe MPP" }}</h5>
+                                {% if article.auteur.description %}
+                                    <p class="author-bio">{{ article.auteur.description|truncatewords:15 }}</p>
+                                {% else %}
+                                    <p class="author-bio">Voir le profil complet &rarr;</p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </a>
                 {% else %}
-                    Utilisateur supprimé
+                    <div class="author-card-link" style="padding: 20px; cursor: default;">
+                        <div class="author-flex-container">
+                            <div class="author-visual">
+                                 <div class="author-img-large default"><i class="fas fa-user-slash"></i></div>
+                            </div>
+                            <div class="author-details">
+                                <h5 class="author-name">Utilisateur Supprimé</h5>
+                                <p class="author-bio">Cet auteur n'est plus actif.</p>
+                            </div>
+                        </div>
+                    </div>
                 {% endif %}
-                le {{ article.date_creation|date:"d F Y" }}
-            </em>
-        </p>
-                <span id="hitcount-display">
-                    {% get_hit_count for article as hits %}
-                    {{ hits|default:0 }}
 
-                    {% if hits == 1 %}
-                        vue
-                    {% else %}
-                        vues
-                    {% endif %}
-                </span></p>
-            </em>
-        </p>
-
-        {% if article.categories.all %}
-            <p>
-                <strong>Catégories :</strong>
-                {% for cat in article.categories.all %}
-                    <a href="{% url 'blog:articles-par-categorie' slug_categorie=cat.slug %}">
-                        {{ cat.nom }}
-                    </a>
-                    {% if not forloop.last %}, {% endif %}
-                {% endfor %}
-            </p>
-        {% endif %}
-        {% if article.image_banniere %}
-            <img src="{{ article.image_banniere.url }}" alt="Bannière" style="max-width: 600px;">
-        {% endif %}
-
-        <!-- LIEN VERS FACEBOOK ET TWITTER -->
-     <div class="social-share" style="margin-top: 15px; margin-bottom: 15px;">
-            <strong>Partager :</strong>
-
-            <a href="https://www.facebook.com/sharer/sharer.php?u={{ absolute_url|urlencode }}" target="_blank" rel="noopener noreferrer" title="Partager sur Facebook" style="text-decoration:none; color: #1877F2; font-size: 1.5em; margin: 0 5px;">
-                <i class="fab fa-facebook"></i>
-            </a>
-
-            <a href="https://twitter.com/intent/tweet?url={{ absolute_url|urlencode }}&text={{ article.titre|urlencode }}" target="_blank" rel="noopener noreferrer" title="Partager sur X" style="text-decoration:none; color: #1DA1F2; font-size: 1.5em; margin: 0 5px;">
-                <i class="fab fa-x-twitter"></i>
-            </a>
-
-            <button id="native-share-button" title="Partager..." style="background:none; border:none; cursor:pointer; color: #555; font-size: 1.5em; margin: 0 5px; vertical-align: middle;">
-                <i class="fas fa-share-alt"></i>
-            </button>
-
-        </div>
-
-        <hr>
-
-        <div>
-            {{ article.contenu|safe }}
-        </div>
-    </article>
-
-    <hr>
-
-    <!-- -------------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------ LIEN VERS LISTE DES ARTICLES ------------------------------------------------------------
-    ------------------------------------------------------------------------------------------------------------------------------------ -->
-    <a href="{% url 'blog:liste-articles' %}">Retour à la liste</a>
-
-    <!-- -------------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------ AFFICHAGE DES COMMENTAIRES-- ------------------------------------------------------------
-    ------------------------------------------------------------------------------------------------------------------------------------ -->
-    <section class="commentaires">
-        <h2>Commentaires ({{ commentaires.count }})</h2>
-
-        {% for commentaire in commentaires %}
-            <div class="commentaire" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
-                <p>
-                    <strong>
-                        {% if commentaire.auteur %}
-                            <a href="{% url 'blog:auteur-profil' pk=commentaire.auteur.pk %}">
-                                {% if commentaire.auteur.pseudo %}
-                                    {{ commentaire.auteur.pseudo }}
-                                {% else %}
-                                    utilisateur{{ commentaire.auteur.id }}
-                                {% endif %}
-                            </a>
-
-                        {% else %}
-                            Utilisateur supprimé
-                        {% endif %}
-                    </strong>
-                    <small>le {{ commentaire.date_creation|date:"d/m/Y H:i" }}</small>
-                </p>
-                <p>{{ commentaire.contenu|linebreaks }}</p>
             </div>
-        {% empty %}
-            <p>Soyez le premier à commenter cet article !</p>
-        {% endfor %}
-    </section>
-    <hr>
 
-    <section class="nouveau-commentaire">
-        <h2>Ajouter un commentaire</h2>
+           <div class="sidebar-widget">
+                <h4>Articles Suggérés</h4>
+                <div class="suggested-list">
+                    {% for suggestion in articles_suggeres %}
+                        <a href="{% url 'blog:detail-article' slug=suggestion.slug %}" class="suggested-item">
 
-        {% if user.is_authenticated %}
+                            <div class="suggested-thumb">
+                                {% if suggestion.image_banniere %}
+                                    <img src="{{ suggestion.image_banniere.url }}" alt="Miniature">
+                                {% else %}
+                                    <i class="fas fa-newspaper" style="font-size: 1.5em; color: rgba(255,255,255,0.5);"></i>
+                                {% endif %}
+                            </div>
 
-            <form method="POST">
+                            <div class="suggested-info">
+                                <span class="suggested-title">{{ suggestion.titre }}</span>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <p style="font-size: 0.9em; opacity: 0.7;">Aucune suggestion pour le moment.</p>
+                    {% endfor %}
+                </div>
+            </div>
 
-                {% csrf_token %}
+        </aside>
 
-                {{ comment_form.as_p }}
+    </div>
 
-                <button type="submit">Envoyer</button>
-            </form>
-
-        {% else %}
-            <p>
-                Vous devez être
-                <a href="#">connecté</a> pour laisser un commentaire.
-            </p>
-        {% endif %}
-
-    </section>
-    <hr>
-
-    <script>
-    // On attend que la page soit chargée
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // On trouve notre bouton de partage
-        const shareButton = document.getElementById('native-share-button');
-
-        // 1. On vérifie si le navigateur supporte le "Web Share API"
-        if (navigator.share) {
-
-            // S'il le supporte, on ajoute un écouteur de clic
-            shareButton.addEventListener('click', async () => {
-                try {
-                    // On appelle l'API de partage
-                    await navigator.share({
-                        title: '{{ article.titre|escapejs }}',
-                        text: '{{ article.contenu|striptags|truncatewords:20|escapejs }}',
-                        url: '{{ absolute_url }}'
-                    });
-                    console.log('Article partagé avec succès !');
-                } catch (err) {
-                    console.error('Erreur lors du partage :', err);
-                }
-            });
-
-        } else {
-            // 2. Si le navigateur ne le supporte pas
-            // (ex: Firefox sur ordinateur, vieux navigateurs)
-            // on cache le bouton.
-            console.warn('Web Share API non supporté.');
-            shareButton.style.display = 'none';
-        }
-    });
-    </script>
 {% endblock content %}

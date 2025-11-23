@@ -1,96 +1,117 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}
-    Accueil - Mon Super Blog
-{% endblock title %}
+{% block title %} Accueil - MPP 2027 {% endblock title %}
 
 {% block content %}
-    <h1>Bienvenue sur Mon Super Blog</h1>
-    <hr>
 
-    <!--
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------
-    --------- ---------------------------------------------------AFFICHE LES X DERNIERS ARTICLES ---------------------------------------------------
-    --------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+   <a href="{% url 'blog:articles-par-categorie' slug_categorie='programme' %}" class="hero-section full-link" title="Découvrir le Projet MPP 2027">
+        <span class="sr-only">Découvrir le projet</span>
+   </a>
 
-    {% if categorie %}
-        <h2>Articles dans la catégorie : {{ categorie.nom }}</h2>
-        <p><a href="{% url 'blog:liste-articles' %}">Voir tous les articles</a></p>
-    {% else %}
-        <h2>Nos derniers articles :</h2>
+
+    <h2 class="section-title">Dernières Actualités & Mesures Phares</h2>
+
+    {% if articles_une %}
+    <div class="bento-container">
+
+        <div class="card-featured">
+            {% with article=articles_une.0 %}
+                {% if article.image_banniere %}
+                    <img src="{{ article.image_banniere.url }}" alt="{{ article.titre }}" class="card-featured-img">
+                {% else %}
+                    <div style="height: 300px; background: #ccc; display:flex; align-items:center; justify-content:center; color: #555;">Pas d'image</div>
+                {% endif %}
+
+                <div class="card-featured-content">
+                    <h3 style="margin-top:0; font-size: 1.5em; text-transform: uppercase;">
+                        <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit;">
+                            {{ article.titre }}
+                        </a>
+                    </h3>
+                    <p style="color: #666;">
+                        {{ article.contenu|striptags|truncatewords:25 }}
+                    </p>
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="color: var(--couleur-principale); font-weight: bold;">
+                        &rarr; Lire l'article
+                    </a>
+                </div>
+            {% endwith %}
+        </div>
+
+        <div class="side-column">
+
+            {% if articles_une.1 %}
+                {% with article=articles_une.1 %}
+                <div class="card-module">
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit; display: flex; width: 100%; align-items: center; gap: 15px;">
+
+                        {% if article.image_banniere %}
+                            <img src="{{ article.image_banniere.url }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
+                        {% else %}
+                             <div style="width: 80px; height: 80px; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                 <i class="fas fa-newspaper" style="font-size: 2em; color: #ccc;"></i>
+                             </div>
+                        {% endif %}
+
+                        <div>
+                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre|truncatewords:5 }}</h4>
+                            <p style="font-size: 0.9em; margin-top: 5px; opacity: 0.8;">{{ article.contenu|striptags|truncatewords:10 }}</p>
+                        </div>
+                    </a>
+                </div>
+                {% endwith %}
+            {% endif %}
+
+            {% if articles_une.2 %}
+                {% with article=articles_une.2 %}
+                <div class="card-module blue-gradient">
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit; display: flex; width: 100%; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre|truncatewords:5 }}</h4>
+                            <p style="font-size: 0.9em; margin-top: 5px;">{{ article.contenu|striptags|truncatewords:10 }}</p>
+                        </div>
+                        <i class="fas fa-arrow-right" style="font-size: 1.5em; opacity: 0.8;"></i>
+                    </a>
+                </div>
+                {% endwith %}
+            {% endif %}
+
+        </div>
+    </div>
+
+    {% if articles_une|length > 3 %}
+    <div class="bottom-grid">
+
+        {% for article in articles_une|slice:"3:7" %}
+        <a href="{% url 'blog:detail-article' slug=article.slug %}" class="card-small" style="text-decoration: none; color: inherit;">
+
+            {% if article.image_banniere %}
+                <img src="{{ article.image_banniere.url }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 2px solid var(--couleur-principale); flex-shrink: 0;">
+            {% else %}
+                <i class="fas fa-bookmark card-icon" style="flex-shrink: 0;"></i>
+            {% endif %}
+
+            <div style="flex: 1;"> <strong style="
+                    text-transform: uppercase;
+                    font-size: 0.9em;
+                    line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3; /* Limite à 3 lignes */
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                ">
+                    {{ article.titre }}
+                </strong>
+            </div>
+        </a>
+        {% endfor %}
+
+    </div>
     {% endif %}
 
-    {% for article in articles %}
-        <article>
-            <h3>
-                <a href="{% url 'blog:detail-article' slug=article.slug %}">
-                    {{ article.titre }}
-                </a>
-            </h3>
+    {% else %}
+        <p style="text-align:center; padding: 40px;">Aucun article à la une pour le moment. Allez dans l'admin pour en configurer.</p>
+    {% endif %}
 
-            <p>
-                <em>
-                    Écrit par
-                    {% if article.auteur %}
-                        <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}">
-                            {{ article.auteur.pseudo|default:article.auteur.email }}
-                        </a>
-                    {% else %}
-                        Utilisateur supprimé
-                    {% endif %}
-                    le {{ article.date_creation|date:"d F Y" }}
-                </em>
-            </p>
-            <p>
-                {{ article.contenu|striptags|truncatewords:50 }}
-            </p>
-
-            {% if article.categories.all %}
-                <p>
-                    <strong>Catégories :</strong>
-                    {% for cat in article.categories.all %}
-                        <a href="{% url 'blog:articles-par-categorie' slug_categorie=cat.slug %}">
-                            {{ cat.nom }}
-                        </a>
-                        {% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-            {% endif %}
-            <a href="{% url 'blog:detail-article' slug=article.slug %}">
-                Lire la suite
-            </a>
-        </article>
-        <hr>
-
-    {% empty %}
-        <p>Oups, il n'y a encore aucun article publié !</p>
-    {% endfor %}
-
-
-    <!--
-    ---------------------------------------------------------------------------------------------------------------------------------------------------------
-    ------------------------------------------------------------ AFFICHE LE LIEN POUR PAGINATION ------------------------------------------------------------
-    --------------------------------------------------------------------------------------------------------------------------------------------------------- -->
-
-    <div class="pagination">
-        <span class="step-links">
-
-            {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}">&laquo; Précédent</a>
-            {% else %}
-                <span class="disabled">&laquo; Précédent</span>
-            {% endif %}
-
-            <span class="current">
-                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}.
-            </span>
-
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}">Suivant &raquo;</a>
-            {% else %}
-                <span class="disabled">Suivant &raquo;</span>
-            {% endif %}
-
-        </span>
-    </div>
 {% endblock content %}

@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from messagerie.models import Message
 from users.models import CustomUser
+from django.core.paginator import Paginator
 
 
 # =============================================================================
@@ -53,6 +54,23 @@ class ArticleListView(ListView):
         # et on lui applique notre filtre.
         return Article.objects.filter(statut=Article.Status.PUBLISHED)
 
+    def get_context_data(self, **kwargs):
+        """
+        Enrichit le contexte pour envoyer des données supplémentaires au template.
+        Ici : les 3 articles pour la grille 'Bento' (Mesures Phares).
+        """
+        context = super().get_context_data(**kwargs)
+        nb_articles_une = 7  # nombre d'article a renvoyer
+
+        # --- LOGIQUE POUR LA GRILLE BENTO ---
+        # On récupère les C derniers articles qui sont publiés et dont est_a_la_une=True
+        context['articles_une'] = Article.objects.filter(
+            statut=Article.Status.PUBLISHED,
+            est_a_la_une__isnull=False
+        ).order_by('est_a_la_une')[:nb_articles_une]
+
+        return context
+
 
 # =============================================================================
 #                AFFICHE UN SEUL ARTICLE
@@ -65,7 +83,7 @@ class ArticleDetailView(HitCountDetailView):
     # Quel modèle ?
     model = Article
 
-    # Quel template ?  Si on ne précise rien, Django chercherait 'article_detail.html'.
+    # Quel template ? Si on ne précisait rien, Django chercherait 'article_detail.html'.
     template_name = 'blog/detail_article.html'
 
     # Sous quel nom l'envoyer au template ? Par défaut, c'est 'object'. On va utiliser 'article'.
@@ -119,6 +137,17 @@ class ArticleDetailView(HitCountDetailView):
         #  On ajoute l'URL absolue pour le partage social.
         absolute_url = self.request.build_absolute_uri(article.get_absolute_url())
         context['absolute_url'] = absolute_url
+
+        # On récupère les ID des catégories de l'article actuel
+        cat_ids = article.categories.values_list('id', flat=True)
+
+        # On cherche des articles publiés qui ont au moins une de ces catégories
+        # On EXCLUT l'article actuel (.exclude(id=article.id))
+        # On prend les 3 premiers distincts (.distinct()[:3])
+        context['articles_suggeres'] = Article.objects.filter(
+            categories__in=cat_ids,
+            statut=Article.Status.PUBLISHED
+        ).exclude(id=article.id).distinct()[:3]
 
         # On construit l'URL de l'image pour la carte
         if article.image_banniere:
@@ -208,8 +237,7 @@ class CategorieArticleListView(ListView):
     """
     model = Article  # On liste toujours des Articles...
 
-    # ON RÉUTILISE LE MÊME TEMPLATE QUE NOTRE LISTE PRINCIPALE !
-    template_name = 'blog/liste_articles.html'
+    template_name = 'blog/categorie_list.html'
 
     # On envoie les articles sous le même nom
     context_object_name = 'articles'
@@ -251,6 +279,24 @@ class CategorieArticleListView(ListView):
 
 
 # =============================================================================
+#                LISTE DE TOUS LES ARTICLES (anté-chronologique)
+# =============================================================================
+class ToutesActualitesView(ListView):
+    """
+    Affiche TOUS les articles publiés, par ordre chronologique.
+    (Page 'Actualités')
+    """
+    model = Article
+    template_name = 'blog/all_articles.html'  # Nouveau template
+    context_object_name = 'articles'
+    paginate_by = settings.BLOG_ARTICLES_PAR_PAGE
+
+    def get_queryset(self):
+        # On prend tout ce qui est publié, du plus récent au plus vieux
+        return Article.objects.filter(statut=Article.Status.PUBLISHED).order_by('-date_creation')
+
+
+# =============================================================================
 #            PROFIL PUBLIC D'UN AUTEUR
 # =============================================================================
 class AuteurProfileView(DetailView):
@@ -270,40 +316,41 @@ class AuteurProfileView(DetailView):
     context_object_name = 'auteur'
 
     def get_context_data(self, **kwargs):
-        """
-        On enrichit le contexte pour y ajouter les listes
-        d'articles et de commentaires de cet auteur,
-        ET on vérifie si le visiteur est le propriétaire.
-        """
-        # On récupère le contexte de base (qui contient 'auteur')
         context = super().get_context_data(**kwargs)
-
-        # On récupère l'objet 'auteur' que la vue a chargé
         auteur = self.get_object()
-
-        # On vérifie si le visiteur actuel est le propriétaire du profil
         is_owner = (self.request.user == auteur)
 
+        # 1. RÉCUPÉRATION ET TRI (Plus récent au plus ancien)
         if is_owner:
-            # Si C'EST le propriétaire, on récupère TOUS ses articles
-            articles_auteur = Article.objects.filter(auteur=auteur)
+            qs_articles = Article.objects.filter(auteur=auteur).order_by('-date_creation')
         else:
-            # Si c'est un simple visiteur, on ne prend que les PUBLIÉS
-            articles_auteur = Article.objects.filter(
-                auteur=auteur,
-                statut=Article.Status.PUBLISHED
-            )
+            qs_articles = Article.objects.filter(auteur=auteur, statut=Article.Status.PUBLISHED).order_by(
+                '-date_creation')
 
-        # On ajoute les résultats au contexte
-        context['articles_auteur'] = articles_auteur
-        context['is_owner'] = is_owner  # On envoie cette info au template
+        qs_comments = Commentaire.objects.filter(auteur=auteur, approuve=True).order_by('-date_creation')
 
-        # On ajoute les commentaires (ceux-ci sont toujours publics)
-        context['commentaires_auteur'] = Commentaire.objects.filter(
-            auteur=auteur,
-            approuve=True
-        )
+        # 2. PAGINATION ARTICLES (5 par page)
+        # On regarde si l'URL contient ?page_articles=2
+        paginator_art = Paginator(qs_articles, 5)
+        page_num_art = self.request.GET.get('page_articles')
+        page_articles = paginator_art.get_page(page_num_art)
 
+        # 3. PAGINATION COMMENTAIRES (5 par page)
+        # On regarde si l'URL contient ?page_comments=2
+        paginator_com = Paginator(qs_comments, 5)
+        page_num_com = self.request.GET.get('page_comments')
+        page_comments = paginator_com.get_page(page_num_com)
+
+        # 4. ENVOI AU TEMPLATE
+        context['page_articles'] = page_articles
+        context['page_comments'] = page_comments
+        context['is_owner'] = is_owner
+
+        # On envoie aussi les "counts" globaux pour les stats de la sidebar
+        context['total_articles'] = qs_articles.count()
+        context['total_comments'] = qs_comments.count()
+        # les 3 derniers commentaires, quelle que soit la page consultée.
+        context['sidebar_comments'] = qs_comments[:3]
         return context
 
 
@@ -432,53 +479,64 @@ class ArticleUpdateView(LoginRequiredMixin, UpdateView):
     context = {'form': form}
     return render(request, 'blog/contact.html', context) """
 
+
 # config avec messagerie interne
+# =============================================================================
+#                              PAGE DE CONTACT (VERSION MESSAGERIE INTERNE)
+# =============================================================================
 def contact_view(request):
     """
     Gère la page de contact.
-    ENREGISTRE LE MESSAGE EN BDD (Messagerie Interne) au lieu d'envoyer un email SMTP.
+    Au lieu d'envoyer un email SMTP, on crée un Message interne
+    destiné à l'administrateur du site.
     """
     if request.method == 'POST':
         form = ContactForm(request.POST)
 
         if form.is_valid():
+            # 1. Récupération des données du formulaire
             nom = form.cleaned_data['nom']
-            email_expediteur = form.cleaned_data['email']
+            email_guest = form.cleaned_data['email']
             sujet = form.cleaned_data['sujet']
-            message_content = form.cleaned_data['message']
+            contenu = form.cleaned_data['message']
 
-            # 1. Trouver à qui l'envoyer (L'administrateur principal)
-            # On prend le premier superuser trouvé
-            admin_user = CustomUser.objects.filter(is_superuser=True).first()
-
+            # 2. Qui est le destinataire ? (L'Admin Principal)
+            # On cherche l'utilisateur avec votre email, ou le premier super-admin trouvé
+            admin_user = CustomUser.objects.filter(email='julien.mpp2027@gmail.com').first()
             if not admin_user:
-                messages.error(request, "Aucun administrateur trouvé pour recevoir le message.")
+                admin_user = CustomUser.objects.filter(is_superuser=True).first()
+
+            if admin_user:
+                # 3. Création du message en base de données
+                nouveau_message = Message(
+                    destinataire=admin_user,
+                    sujet=f"[Contact Site] {sujet}",  # On ajoute un préfixe pour repérer ces messages
+                    contenu=contenu,
+                    # Champs spécifiques pour les visiteurs non connectés
+                    nom_guest=nom,
+                    email_guest=email_guest
+                )
+
+                # Si l'utilisateur est connecté, on lie son compte (c'est plus propre)
+                if request.user.is_authenticated:
+                    nouveau_message.expediteur = request.user
+
+                nouveau_message.save()
+
+                messages.success(request, 'Votre message a bien été envoyé à l\'équipe !')
                 return redirect('blog:liste-articles')
 
-            # 2. Créer le message en base de données
-            nouveau_msg = Message(
-                destinataire=admin_user,
-                sujet=f"[Contact Blog] {sujet}",
-                contenu=message_content,
-                nom_guest=nom,
-                email_guest=email_expediteur
-            )
-
-            # Si l'utilisateur est connecté, on le lie aussi
-            if request.user.is_authenticated:
-                nouveau_msg.expediteur = request.user
-
-            nouveau_msg.save()
-
-            messages.success(request, 'Votre message a bien été envoyé.')
-            return redirect('blog:liste-articles')
+            else:
+                # Cas rare : aucun admin n'existe dans la base
+                messages.error(request, "Erreur : Aucun administrateur disponible pour recevoir le message.")
 
     else:
-        # (Cette partie reste identique à votre code actuel)
+        # Pré-remplissage si l'utilisateur est connecté
         initial_data = {}
         if request.user.is_authenticated:
             initial_data['nom'] = request.user.pseudo or request.user.email
             initial_data['email'] = request.user.email
+
         form = ContactForm(initial=initial_data)
 
     context = {'form': form}

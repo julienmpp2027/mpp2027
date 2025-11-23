@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Toutes les actualités - MPP 2027{% endblock title %}
+
+{% block content %}
+
+<div class="profile-header-card">
+    <div class="profile-header-content" style="align-items: center;">
+
+        <div class="profile-avatar-xl default" style="font-size: 2.5em; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2);">
+            <i class="fas fa-newspaper"></i>
+        </div>
+
+        <div class="profile-info">
+            <h1 class="profile-name" style="margin-bottom: 5px;">
+                Actualités
+            </h1>
+            <p class="profile-meta" style="color: rgba(255,255,255,0.7); margin-bottom: 0;">
+                Le fil complet de nos publications et réactions.
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<div class="profile-layout" style="display: block;">
+    <div class="profile-main">
+
+        {% for article in articles %}
+            <div class="dashboard-card">
+
+                <div class="dashboard-card-header">
+                    <h3 class="dashboard-card-title" style="font-size: 1.3em;">
+                        <a href="{% url 'blog:detail-article' slug=article.slug %}">
+                            {{ article.titre }}
+                        </a>
+                    </h3>
+                    <span class="dashboard-date">
+                        <i class="far fa-clock"></i> {{ article.date_creation|date:"d M Y" }}
+                    </span>
+                </div>
+
+                <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                    Par <strong style="color: var(--couleur-principale);">{{ article.auteur.pseudo|default:"Rédaction" }}</strong>
+                </div>
+
+                <p class="dashboard-preview">
+                    {{ article.contenu|striptags|truncatewords:40 }}
+                </p>
+
+                <div class="dashboard-footer">
+                    <div style="display: flex; gap: 5px;">
+                        {% for cat in article.categories.all %}
+                            <span class="badge badge-blue" style="font-weight: normal;">{{ cat.nom }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" class="btn-action red" style="padding: 5px 15px; font-size: 0.9em;">
+                        Lire l'article
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="dashboard-card" style="text-align: center; padding: 50px;">
+                <p>Aucune actualité pour le moment.</p>
+            </div>
+        {% endfor %}
+
+        {% if is_paginated %}
+        <div class="pagination-container">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">&laquo; Précédent</a>
+            {% endif %}
+
+            <span class="pagination-info">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">Suivant &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock content %}

@@ -24,6 +24,8 @@ urlpatterns = [
              template_name='users/password_reset_form.html',
              email_template_name='users/password_reset_email.html',
              form_class=UserPasswordResetForm,
+            # Version HTML (C'est celle-ci qui s'affichera joliment sur Gmail/Mobile)
+             html_email_template_name='users/password_reset_email.html',
              success_url=reverse_lazy('users:password_reset_done'),
          ),
          name='password_reset'),

@@ -1,70 +1,134 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    Écrire un nouvel article
+    {{ page_title|default:"Écrire un nouvel article" }}
 {% endblock title %}
 
 {% block content %}
-    <h2>{{ page_title|default:"Écrire un nouvel article" }}</h2>
 
-    <div style="padding: 10px; background: #eef; border: 1px solid #cce; margin-bottom: 15px; border-radius: 5px;">
-        <strong>Note :</strong> Votre article sera d'abord soumis en tant que <strong>Brouillon</strong>.
-        Il sera visible sur votre profil, mais seul un administrateur pourra le publier sur le site principal.
+<div class="profile-header-card">
+    <div class="profile-header-content" style="align-items: flex-start;">
+        <div class="profile-info">
+            <h1 class="profile-name" style="margin-bottom: 10px;">
+                {% if form.instance.pk %}Modifier l'article{% else %}Nouvel Article{% endif %}
+            </h1>
+            <p class="profile-bio" style="color: rgba(255,255,255,0.8); max-width: none;">
+                Partagez vos idées avec la communauté. Soignez votre titre et votre illustration !
+            </p>
+        </div>
     </div>
+</div>
 
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+<div class="profile-layout" style="display: block;"> <div class="profile-main">
 
-        <div style="margin-bottom: 15px;">
-            <label for="{{ form.titre.id_for_label }}">Titre :</label>
-            {{ form.titre }}
-            {% if form.titre.errors %}
-                <div style="color: red;">{{ form.titre.errors }}</div>
-            {% endif %}
-        </div>
+        <div class="dashboard-card" style="padding: 40px;">
 
-        <div style="margin-bottom: 15px;">
-            <label for="{{ form.image_banniere.id_for_label }}">{{ form.image_banniere.label }} :</label>
-            {{ form.image_banniere }}
-            {% if form.image_banniere.errors %}
-                <div style="color: red;">{{ form.image_banniere.errors }}</div>
-            {% endif %}
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label>Catégories :</label>
-
-            <div class="checkbox-list" style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; max-height: 150px; overflow-y: auto;">
-                {% for checkbox in form.categories %}
-                    <span class="checkbox-item" style="display: block;">
-
-                        {{ checkbox.tag }}
-
-                        <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
-
-                    </span>
-                {% endfor %}
-
+            <div class="info-box">
+                <i class="fas fa-info-circle" style="font-size: 1.5em;"></i>
+                <div>
+                    <strong>Note importante :</strong> Votre article sera d'abord enregistré comme <strong>Brouillon</strong>.
+                    Vous pourrez le relire sur votre profil avant qu'un administrateur ne le valide.
+                </div>
             </div>
 
-            {% if form.categories.errors %}
-                <div style="color: red;">{{ form.categories.errors }}</div>
-            {% endif %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {{ form.media }}
+
+                <div class="form-group">
+                    <label for="{{ form.titre.id_for_label }}">{{ form.titre.label }}</label>
+                    {{ form.titre }}
+                    {% if form.titre.errors %}
+                        <div class="field-errors">
+                            {% for error in form.titre.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group photo-upload-group" style="margin-top: 30px;">
+                    <label>{{ form.image_banniere.label }}</label>
+
+                    <div class="photo-upload-widget">
+                        <div class="current-photo">
+                            {% if form.instance.image_banniere %}
+                                <img src="{{ form.instance.image_banniere.url }}" alt="Bannière" class="profile-avatar-xl" style="border-radius: 10px; width: 120px;">
+                            {% else %}
+                                <div class="profile-avatar-xl default" style="border-radius: 10px; width: 120px;">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="upload-field-container">
+                            {{ form.image_banniere }}
+
+                            {% if form.instance.image_banniere %}
+                                <div class="clear-checkbox-container" style="margin-top: 10px;">
+                                    <input type="checkbox" name="image_banniere-clear" id="image_banniere-clear_id">
+                                    <label for="image_banniere-clear_id" style="display:inline; font-weight:normal; margin-left:8px; cursor:pointer;">
+                                        Supprimer l'image
+                                    </label>
+                                </div>
+                            {% endif %}
+
+                            {% if form.image_banniere.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.image_banniere.errors %}<span>{{ error }}</span>{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label>Catégories</label>
+
+                    <div class="categories-checkbox-list">
+                        {% for checkbox in form.categories %}
+                            <div class="checkbox-item">
+                                {{ checkbox.tag }}
+                                <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if form.categories.errors %}
+                        <div class="field-errors">
+                            {% for error in form.categories.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label for="id_contenu">Contenu de l'article</label>
+
+                    <div style="border: 2px solid #e0e0e0; border-radius: 10px;">
+                        {{ form.contenu }}
+                    </div>
+
+                    {% if form.contenu.errors %}
+                        <div class="field-errors">
+                            {% for error in form.contenu.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions" style="margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 30px; display: flex; align-items: center;">
+                    <button type="submit" class="btn-action red" style="border: none; cursor: pointer; font-size: 1.1em; padding: 12px 30px; display: inline-flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-paper-plane"></i>
+                        {% if form.instance.pk %}Enregistrer les modifications{% else %}Soumettre mon brouillon{% endif %}
+                    </button>
+
+                    <a href="{% url 'blog:auteur-profil' pk=user.pk %}" style="margin-left: 30px; color: #777; text-decoration: none; font-weight: 500;">
+                        Annuler
+                    </a>
+                </div>
+
+            </form>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="id_contenu">Contenu :</label>
-
-            {{ form.media }}
-            {{ form.contenu }}
-
-            {% if form.contenu.errors %}
-                <div style="color: red;">{{ form.contenu.errors }}</div>
-            {% endif %}
-        </div>
-
-        <button type="submit">Soumettre mon brouillon</button>
-
-    </form>
+    </div>
+</div>
 
 {% endblock content %}

@@ -1,25 +1,89 @@
 {% extends 'base.html' %}
+
+{% block title %}Ma Messagerie{% endblock title %}
+
 {% block content %}
-<h2>Ma Messagerie</h2>
-<a href="{% url 'messagerie:nouveau' %}" class="nav-button-solid">Écrire un message</a>
-<hr>
-{% for msg in messages_recus %}
-    <div style="padding: 10px; border-bottom: 1px solid #ccc; {% if not msg.lu %}background:#eef; font-weight:bold;{% endif %}">
-        <a href="{% url 'messagerie:lire' pk=msg.pk %}">
-            {{ msg.sujet }}
-        </a>
-        <br>
-        <small>
-            De :
-            {% if msg.expediteur %}
-                {{ msg.expediteur.pseudo }}
-            {% else %}
-                {{ msg.nom_guest }} (Visiteur)
-            {% endif %}
-             - {{ msg.date_envoi|date:"d/m/Y H:i" }}
-        </small>
+
+<div class="profile-header-card">
+    <div class="profile-header-content" style="justify-content: space-between;">
+        <div class="profile-info">
+            <h1 class="profile-name" style="margin-bottom: 10px;">
+                <i class="far fa-envelope"></i> Ma Messagerie
+            </h1>
+            <p class="profile-bio" style="color: rgba(255,255,255,0.8); max-width: none;">
+                Gérez vos échanges privés avec la communauté et l'administration.
+            </p>
+        </div>
+
+        <div class="profile-actions">
+            <a href="{% url 'messagerie:nouveau' %}" class="btn-action red">
+                <i class="fas fa-pen"></i> Écrire un message
+            </a>
+        </div>
     </div>
-{% empty %}
-    <p>Aucun message reçu.</p>
-{% endfor %}
-{% endblock %}
+</div>
+
+<div class="profile-layout" style="display: block;"> <div class="profile-main">
+
+        <div class="mailbox-list">
+            {% for msg in discussions %}
+                <a href="{% url 'messagerie:lire' pk=msg.pk %}" class="mailbox-item {% if msg.is_unread %}unread{% endif %}">
+
+                    <div class="mail-avatar-col">
+                        {% if msg.expediteur == user %}
+                            {% if msg.destinataire.profile_picture %}
+                                <img src="{{ msg.destinataire.profile_picture.url }}" class="mail-avatar-small">
+                            {% else %}
+                                <div class="mail-avatar-small"><i class="fas fa-user"></i></div>
+                            {% endif %}
+                        {% else %}
+                            {% if msg.expediteur and msg.expediteur.profile_picture %}
+                                <img src="{{ msg.expediteur.profile_picture.url }}" class="mail-avatar-small">
+                            {% else %}
+                                <div class="mail-avatar-small"><i class="fas fa-user"></i></div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mail-content-col">
+                        <div class="mail-sender">
+
+                            {% if msg.expediteur == user %}
+                                <span style="color: #888; margin-right: 5px;">À :</span>
+                                <strong>{{ msg.destinataire.pseudo }}</strong>
+                                <span style="font-size: 0.8em; color: #999; margin-left: 10px;">(Moi)</span>
+                            {% else %}
+                                {% if msg.expediteur %}
+                                    <strong>{{ msg.expediteur.pseudo }}</strong>
+                                {% else %}
+                                    <strong>{{ msg.nom_guest }}</strong> (Visiteur)
+                                {% endif %}
+                            {% endif %}
+
+                            {% if msg.is_unread %}
+                                <span class="badge badge-orange" style="font-size: 0.7em; margin-left: 10px;">NOUVEAU MESSAGE</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="mail-subject">
+                            {{ msg.sujet|cut:"[Contact Site] "|cut:"[Contact Blog] " }}
+                        </div>
+                    </div>
+
+                    <div class="mail-date-col">
+                        {{ msg.date_envoi|date:"d M, H:i" }}
+                    </div>
+                </a>
+            {% empty %}
+                <div class="dashboard-card" style="text-align: center; padding: 50px;">
+                    <i class="far fa-envelope-open" style="font-size: 4em; color: #ccc; margin-bottom: 20px;"></i>
+                    <p style="color: #666;">Aucune conversation pour le moment.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock content %}

@@ -3,53 +3,40 @@
 {% block title %}Nouveau Message{% endblock title %}
 
 {% block content %}
-    <h2>Envoyer un message</h2>
 
-    <div class="form-container" style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+<div class="auth-layout" style="max-width: 800px;">
+
+    <h1 style="text-align: center; color: var(--couleur-secondaire); margin-bottom: 30px; font-weight: 800;">
+        Nouveau message
+    </h1>
+
+    <div class="dashboard-card" style="padding: 40px;">
         <form method="POST">
             {% csrf_token %}
 
-            <div style="margin-bottom: 15px;">
-                <label for="{{ form.destinataire.id_for_label }}"><strong>Destinataire :</strong></label>
-                <br>
+            <div class="form-group">
+                <label>Destinataire</label>
                 {{ form.destinataire }}
-                {% if form.destinataire.errors %}
-                    <div style="color: red;">{{ form.destinataire.errors }}</div>
-                {% endif %}
             </div>
 
-            <div style="margin-bottom: 15px;">
-                <label for="{{ form.sujet.id_for_label }}"><strong>Sujet :</strong></label>
-                <br>
+            <div class="form-group">
+                <label>Sujet</label>
                 {{ form.sujet }}
             </div>
 
-            <div style="margin-bottom: 15px;">
-                <label for="{{ form.contenu.id_for_label }}"><strong>Message :</strong></label>
-                <br>
+            <div class="form-group">
+                <label>Votre message</label>
                 {{ form.contenu }}
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <a href="{% url 'messagerie:inbox' %}" style="color: #666;">Annuler</a>
-                <button type="submit" class="nav-button-solid" style="border: none; cursor: pointer; font-size: 1em;">
-                    Envoyer le message
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+                <a href="{% url 'messagerie:inbox' %}" style="color: #666; text-decoration: none;">Annuler</a>
+                <button type="submit" class="btn-action red" style="border: none; cursor: pointer; font-size: 1.1em; padding: 12px 30px;">
+                    <i class="fas fa-paper-plane"></i> Envoyer
                 </button>
             </div>
         </form>
     </div>
+</div>
 
-    <style>
-        /* Cible tous les inputs texte et textarea dans ce formulaire */
-        .form-container input[type="text"],
-        .form-container textarea,
-        .form-container select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box; /* Important pour ne pas dépasser la largeur */
-        }
-    </style>
 {% endblock content %}

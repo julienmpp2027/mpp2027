@@ -52,6 +52,12 @@ class Article(models.Model):
         default=Status.DRAFT,
         help_text="Statut de l'article (Brouillon ou Publié)"
     )
+    est_a_la_une = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Position à la une",
+        help_text="Entrez 1, 2 ou 3 pour définir l'ordre sur l'accueil. Laissez vide pour ne pas afficher."
+    )
 
     # --- Dates ---
     date_creation = models.DateTimeField(auto_now_add=True)  # Date de création (automatique)

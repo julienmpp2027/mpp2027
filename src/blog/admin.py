@@ -33,10 +33,13 @@ class ArticleAdmin(admin.ModelAdmin):
 
     """
     # Colonnes à afficher dans la liste des articles
-    list_display = ('titre', 'auteur', 'statut', 'date_creation')
+    list_display = ('titre', 'auteur', 'statut', 'est_a_la_une', 'date_creation')
+
+    # Pour pouvoir le modifier sans ouvrir l'article !
+    list_editable = ('statut', 'est_a_la_une')
 
     # Ajoute un panneau de filtre sur la droite
-    list_filter = ('statut', 'date_creation', 'auteur')
+    list_filter = ('est_a_la_une', 'statut', 'date_creation', 'auteur')
 
     # Barre de recherche
     search_fields = ('titre', 'contenu')
@@ -54,7 +57,7 @@ class ArticleAdmin(admin.ModelAdmin):
             'fields': ('titre', 'slug', 'contenu', 'image_banniere')
         }),
         ('Publication', {  # C'était "Publication et Auteur"
-            'fields': ('statut', 'categories')  # 'auteur' a été retiré
+            'fields': ('statut', 'est_a_la_une', 'categories')  # 'auteur' a été retiré
         }),
     )
 
