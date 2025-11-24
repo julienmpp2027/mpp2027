@@ -405,8 +405,15 @@ a.author-card-link:hover .author-name { color: var(--couleur-tertiaire); }
     max-width: 1400px; margin-left: auto; margin-right: auto; width: 96%;
 }
 .profile-header-card {
-    background: rgba(30, 45, 70, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px; padding: 40px; margin-top: 40px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: rgba(30, 45, 70, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 40px;
+    margin-top: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    /* CORRECTIF CRUCIAL : Le padding est inclus dans les 100% de largeur */
+    box-sizing: border-box;
 }
 .profile-header-content { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
 .profile-avatar-xl { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.1); }
@@ -840,4 +847,8 @@ ul.messages li.info {
     .commentaires-section { padding: 15px; }
     .profile-layout { grid-template-columns: 1fr; }
     .profile-header-content { flex-direction: column; text-align: center; }
+    .profile-header-card {
+        padding: 20px; /* 20px suffisent sur mobile (au lieu de 40) */
+        margin-top: 20px;
+    }
 }
