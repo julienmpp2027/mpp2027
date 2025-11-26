@@ -249,20 +249,25 @@ class CategorieArticleListView(ListView):
         """
         On surcharge cette méthode pour filtrer les articles.
         """
-        # 1. On récupère le 'slug' de la catégorie depuis l'URL
-        # 'self.kwargs' contient les arguments capturés par l'URL.
-        try:
-            self.categorie = get_object_or_404(Categorie, slug=self.kwargs['slug_categorie'])
-        except Categorie.DoesNotExist:
-            # Gérer le cas où la catégorie n'existe pas, bien que get_object_or_404 le fasse
-            # On pourrait lever une Http404 ou retourner un queryset vide
-            return Article.objects.none()  # Retourne une liste vide
+        # 1. On récupère la catégorie depuis l'URL
+        # get_object_or_404 assure la sécurité : si le slug est faux, ça renvoie une erreur 404.
+        self.categorie = get_object_or_404(Categorie, slug=self.kwargs['slug_categorie'])
 
-        # 2. On filtre les articles
-        return Article.objects.filter(
-            categories=self.categorie,  # Filtre sur la catégorie trouvée
-            statut=Article.Status.PUBLISHED  # On ne montre que les articles publiés
+        # 2. On crée la liste de base : Articles de cette catégorie ET Publiés
+        queryset = Article.objects.filter(
+            categories=self.categorie,
+            statut=Article.Status.PUBLISHED
         )
+
+        # 3. Filtre SPÉCIAL pour la catégorie "programme"
+        if self.categorie.slug == 'programme':
+            # On ne garde que ceux qui ont une position (est_a_la_une n'est pas vide)
+            queryset = queryset.filter(est_a_la_une__isnull=False)
+            # On les trie par ordre de position (1, 2, 3...)
+            queryset = queryset.order_by('est_a_la_une')
+
+        # 4. On renvoie le résultat final
+        return queryset
 
     def get_context_data(self, **kwargs):
         """

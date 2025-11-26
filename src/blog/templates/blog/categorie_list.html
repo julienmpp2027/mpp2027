@@ -46,7 +46,17 @@
                 </div>
 
                 <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
-                    Par <strong style="color: var(--couleur-principale);">{{ article.auteur.pseudo|default:"Rédaction" }}</strong>
+                    <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                    Par
+                        {% if article.auteur %}
+                            <a href="{% url 'blog:auteur-profil' pk=article.auteur.pk %}"
+                                    style="color: var(--couleur-principale); text-decoration: none; font-weight: bold; transition: color 0.2s;">
+                                {{ article.auteur.pseudo }}
+                            </a>
+                        {% else %}
+                            <strong style="color: var(--couleur-principale);">Rédaction</strong>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <p class="dashboard-preview">
@@ -54,10 +64,19 @@
                 </p>
 
                 <div class="dashboard-footer">
-                    <div style="display: flex; gap: 5px;">
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                         {% for cat in article.categories.all %}
-                            {% if cat != categorie %} <span class="badge badge-blue" style="font-weight: normal;">{{ cat.nom }}</span>
-                            {% endif %}
+                            {# On affiche la catégorie seulement si ce n'est pas celle de la page actuelle, ou si on veut toutes les voir #}
+
+                            <a href="{% url 'blog:articles-par-categorie' slug_categorie=cat.slug %}"
+                               style="text-decoration: none; transition: opacity 0.2s;"
+                               onmouseover="this.style.opacity='0.8'"
+                               onmouseout="this.style.opacity='1'">
+                                <span class="badge badge-blue" style="font-weight: normal; cursor: pointer;">
+                                    {{ cat.nom }}
+                                </span>
+                            </a>
+
                         {% endfor %}
                     </div>
 

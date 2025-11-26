@@ -10,8 +10,9 @@
         <span class="sr-only">Découvrir le projet</span>
    </a>
 
-
-    <h2 class="section-title">Dernières Actualités & Mesures Phares</h2>
+    <a href="{% url 'blog:articles-par-categorie' slug_categorie='programme' %}" style="text-decoration: none; color: inherit;" title="Découvrir le Projet MPP 2027">
+        <h2 class="section-title">À la une</h2>
+    </a>
 
     {% if articles_une %}
     <div class="bento-container">
@@ -30,9 +31,9 @@
                             {{ article.titre }}
                         </a>
                     </h3>
-                    <p style="color: #666;">
+                    <!--<p style="color: #666;">
                         {{ article.contenu|striptags|truncatewords:25 }}
-                    </p>
+                    </p>-->
                     <a href="{% url 'blog:detail-article' slug=article.slug %}" style="color: var(--couleur-principale); font-weight: bold;">
                         &rarr; Lire l'article
                     </a>
@@ -57,7 +58,7 @@
 
                         <div>
                             <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre|truncatewords:5 }}</h4>
-                            <p style="font-size: 0.9em; margin-top: 5px; opacity: 0.8;">{{ article.contenu|striptags|truncatewords:10 }}</p>
+                            <!--<p style="font-size: 0.9em; margin-top: 5px; opacity: 0.8;">{{ article.contenu|striptags|truncatewords:10 }}</p>-->
                         </div>
                     </a>
                 </div>
@@ -69,10 +70,17 @@
                 <div class="card-module blue-gradient">
                     <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit; display: flex; width: 100%; align-items: center; justify-content: space-between;">
                         <div>
-                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre|truncatewords:5 }}</h4>
-                            <p style="font-size: 0.9em; margin-top: 5px;">{{ article.contenu|striptags|truncatewords:10 }}</p>
+                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre }}</h4>
+                            <!--<p style="font-size: 0.9em; margin-top: 5px;">{{ article.contenu|striptags|truncatewords:10 }}</p>-->
                         </div>
-                        <i class="fas fa-arrow-right" style="font-size: 1.5em; opacity: 0.8;"></i>
+                        {% if article.image_banniere %}
+                            <img src="{{ article.image_banniere.url }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
+                        {% else %}
+                             <div style="width: 80px; height: 80px; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                 <i class="fas fa-newspaper" style="font-size: 2em; color: #ccc;"></i>
+                             </div>
+                        {% endif %}
+                        <!--<i class="fas fa-arrow-right" style="font-size: 1.5em; opacity: 0.8;"></i>-->
                     </a>
                 </div>
                 {% endwith %}

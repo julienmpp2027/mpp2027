@@ -1,4 +1,11 @@
 /* =============================================================================
+   0. RESET ESSENTIEL (A AJOUTER TOUT EN HAUT)
+   ============================================================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* =============================================================================
    1. CONFIGURATION GÉNÉRALE & VARIABLES
    ============================================================================= */
 :root {
@@ -848,15 +855,30 @@ ul.messages li.info {
 
     /* --- RESTE DU SITE (Grilles) --- */
 
-     /* Bannière Hero */
-    .hero-section { height: auto; aspect-ratio: 16/9; margin: 20px auto; border-radius: 15px; }
-    .bento-container { grid-template-columns: 1fr; margin-top: 20px; }
+    /* Bannière Hero : On lui donne 100% de largeur - 40px de marge (20px chaque côté) */
+    .hero-section {
+        height: auto;
+        aspect-ratio: 16/9;
+        margin: 20px 20px; /* 20px haut/bas, 20px gauche/droite */
+        width: calc(100% - 40px); /* Calcul précis pour ne pas déborder */
+        border-radius: 15px;
+    }
+
+    /* Bento Container (Cartes du haut) */
+    .bento-container {
+        grid-template-columns: 1fr;
+        margin: 20px 0;
+        padding: 0 20px; /* Même alignement gauche/droite que le hero */
+        width: 100%;
+    }
+
+    /* Bottom Grid (Les bulles blanches du bas) */
     .bottom-grid {
         display: grid;
         grid-template-columns: 1fr !important; /* Une seule colonne */
         gap: 15px;
         width: 100%;
-        padding: 0 15px; /* Marges de sécurité pour ne pas toucher les bords */
+        padding: 0 20px; /* Alignement identique aux autres blocs */
         margin: 20px 0;
     }
 
@@ -864,6 +886,9 @@ ul.messages li.info {
     .card-small {
         width: 100%;
         margin: 0;
+        /* Optionnel : centrer le texte ou l'image si besoin */
+        display: flex;
+        align-items: center;
     }
     .article-layout { grid-template-columns: 1fr; gap: 30px; padding: 0 15px; }
     .article-sidebar { position: static; height: auto; overflow: visible; }
