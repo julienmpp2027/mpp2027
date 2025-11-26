@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load blog_extras %}
 {% load static %}
 
 {% block title %} Accueil - MPP 2027 {% endblock title %}
@@ -101,7 +102,7 @@
                     -webkit-box-orient: vertical;
                     overflow: hidden;
                 ">
-                    {{ article.titre }}
+                    {{ article.titre|split_title }}
                 </strong>
             </div>
         </a>

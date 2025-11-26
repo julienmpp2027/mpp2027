@@ -34,8 +34,18 @@
             <header class="article-header">
 
                 {% if article.statut == 'DRAFT' %}
-                    <div style="background-color: #ff9800; color: black; display: inline-block; padding: 5px 15px; border-radius: 4px; font-weight: bold; margin-bottom: 15px; font-size: 0.9em;">
-                        <i class="fas fa-pen-ruler"></i> MODE BROUILLON - Visible uniquement par vous
+                    <div style="background-color: #ff9800; color: black; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+
+                        <div style="font-weight: bold; font-size: 0.95em;">
+                            <i class="fas fa-pen-ruler"></i> MODE BROUILLON - Visible uniquement par vous
+                        </div>
+
+                        {% if user == article.auteur %}
+                            <a href="{% url 'blog:article-update' slug=article.slug %}" class="btn-action outline" style="border-color: black; color: black; font-size: 0.9em; padding: 8px 15px;">
+                                <i class="fas fa-pencil-alt"></i> Modifier cet article
+                            </a>
+                        {% endif %}
+
                     </div>
                 {% endif %}
 

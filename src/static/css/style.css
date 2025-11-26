@@ -405,15 +405,8 @@ a.author-card-link:hover .author-name { color: var(--couleur-tertiaire); }
     max-width: 1400px; margin-left: auto; margin-right: auto; width: 96%;
 }
 .profile-header-card {
-    background: rgba(30, 45, 70, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 40px;
-    margin-top: 40px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    /* CORRECTIF CRUCIAL : Le padding est inclus dans les 100% de largeur */
-    box-sizing: border-box;
+    background: rgba(30, 45, 70, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px; padding: 40px; margin-top: 40px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 .profile-header-content { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
 .profile-avatar-xl { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.1); }
@@ -503,99 +496,62 @@ a.author-card-link:hover .author-name { color: var(--couleur-tertiaire); }
 .chat-container::-webkit-scrollbar-thumb { background: var(--couleur-tertiaire); border-radius: 4px; }
 
 
-
 /* =============================================================================
-    FOOTER (MINIMALISTE - UNE LIGNE)
+   7. FOOTER
    ============================================================================= */
-
 .main-footer {
-    background-color: var(--couleur-principale);
-    /* Petite bordure subtile pour séparer du contenu */
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-
-    padding: 25px 0; /* Hauteur fine */
-    margin-top: 80px;
-    font-size: 0.95em;
+    background-color: var(--couleur-principale); border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--couleur-secondaire); padding: 60px 0 20px 0; margin-top: 80px;
 }
-
 .footer-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-
-    /* ALIGNEMENT HORIZONTAL */
-    display: flex;
-    justify-content: space-between; /* Pousse les éléments aux extrémités */
-    align-items: center;            /* Centre verticalement */
+    max-width: 1400px; margin: 0 auto; padding: 0 20px;
+    display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap;
 }
-
-/* --- LIENS GAUCHE --- */
-.footer-links {
-    display: flex;
-    align-items: center;
-    gap: 20px; /* Espace entre les liens */
+.footer-column { flex: 1; min-width: 250px; }
+.footer-column h4 {
+    color: var(--couleur-secondaire); font-size: 1.2em; font-weight: 800;
+    text-transform: uppercase; margin-top: 0; margin-bottom: 25px;
+    border-bottom: 3px solid var(--couleur-tertiaire); display: inline-block; padding-bottom: 5px;
 }
-
-.footer-links a {
-    color: rgba(255, 255, 255, 0.6); /* Gris clair par défaut */
-    text-decoration: none;
-    transition: color 0.2s;
-    font-weight: 500;
+.footer-column ul { list-style: none; padding: 0; margin: 0; }
+.footer-column ul li { margin-bottom: 12px; }
+.footer-column a, .footer-column a:visited {
+    color: var(--couleur-secondaire); text-decoration: none; opacity: 0.7;
+    transition: all 0.3s; display: inline-block;
 }
-
-.footer-links a:hover {
-    color: white; /* Blanc au survol */
-    text-decoration: underline;
-}
-
-.separator-dot {
-    color: rgba(255, 255, 255, 0.2); /* Point de séparation discret */
-}
-
-/* --- RÉSEAUX SOCIAUX DROITE --- */
-.footer-socials {
-    display: flex;
-    gap: 20px;
-}
-
+.footer-column a:hover { opacity: 1; color: var(--couleur-tertiaire); transform: translateX(5px); }
+.footer-socials { display: flex; gap: 20px; }
 .footer-socials a {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 1.2em;
-    transition: all 0.2s;
-
-    /* On reset les styles de cercle précédents pour un look épuré */
-    background: none;
-    width: auto;
-    height: auto;
-    border-radius: 0;
-    display: inline-block;
+    font-size: 1.8em; background: rgba(255,255,255,0.05);
+    width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; opacity: 1; transition: all 0.3s;
+}
+.footer-socials a:hover { background: var(--couleur-tertiaire); color: white; transform: translateY(-5px); }
+.footer-bottom {
+    text-align: center; margin-top: 60px; padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); opacity: 0.5; font-size: 0.9em;
 }
 
-.footer-socials a:hover {
-    color: white;
-    background: none;
-    transform: translateY(-2px); /* Petit rebond */
+.mobile-menu-toggle,
+.mobile-only-logout,
+.mobile-only-link {
+    display: none;
 }
-
-/* --- RESPONSIVE MOBILE --- */
-@media (max-width: 768px) {
-    .footer-content {
-        flex-direction: column; /* Empile les éléments */
-        gap: 20px;
-        text-align: center;
-    }
-
-    .footer-links {
-        flex-direction: column; /* Empile les liens */
-        gap: 10px;
-    }
-
-    .separator-dot {
-        display: none; /* Cache les points sur mobile */
-    }
+/* =============================================================================
+   8. RESPONSIVE (MOBILE & TABLETTE)
+   ============================================================================= */
+@media (max-width: 900px) {
+    .bento-container { grid-template-columns: 1fr; margin-top: 20px; }
+    .bottom-grid { grid-template-columns: 1fr 1fr; }
+    .article-layout { grid-template-columns: 1fr; gap: 30px; padding: 0 15px; }
+    .article-sidebar { position: static; height: auto; overflow: visible; }
+    .commentaires-section { padding: 15px; }
+    .comment-list { max-height: 400px; }
+    .comment-form textarea { min-height: 80px; }
+    .navbar-center { margin-left: 0; gap: 15px; font-size: 0.9em; }
+    .profile-layout { grid-template-columns: 1fr; }
+    .profile-header-content { flex-direction: column; text-align: center; }
 }
-
-
 /* =============================================================================
    MESSAGES FLASH (NOTIFICATIONS)
    ============================================================================= */
@@ -724,131 +680,4 @@ ul.messages li.info {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-/* =============================================================================
-   8. RESPONSIVE (MOBILE & TABLETTE) - NAVBAR OPTIMISÉE
-   ============================================================================= */
-
-/* Par défaut (Desktop) : On cache le burger et les éléments mobiles */
-.mobile-menu-toggle, .mobile-only-logout, .mobile-only-link {
-    display: none;
-}
-
-/* ÉCRANS < 900px (Tablettes et Mobiles) */
-@media (max-width: 900px) {
-
-    /* 1. La Navbar devient un conteneur relatif pour le menu déroulant */
-    .navbar-container {
-        position: relative;
-        justify-content: space-between; /* Logo à gauche, reste à droite */
-    }
-
-    /* 2. Le Burger Apparaît */
-    .mobile-menu-toggle {
-        display: block;
-        font-size: 1.8em;
-        color: var(--couleur-secondaire);
-        cursor: pointer;
-        order: 3; /* Tout à droite */
-        margin-left: 20px;
-    }
-
-    /* 3. Le Menu Central (Liens) devient un panneau déroulant */
-    .navbar-center {
-        display: none; /* Caché par défaut */
-        position: absolute;
-        top: 100%; /* Juste en dessous de la barre */
-        left: 0;
-        width: 100%;
-        background-color: var(--couleur-principale);
-        flex-direction: column; /* Liste verticale */
-        padding: 20px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-        margin-left: 0; /* Reset de la marge PC */
-        gap: 0; /* On gère l'espace avec le padding des liens */
-        border-top: 1px solid rgba(255,255,255,0.1);
-    }
-
-    /* Quand on clique sur le burger (JS ajoute la classe .active) */
-    .navbar-center.active {
-        display: flex;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    /* Style des liens dans le menu mobile */
-    /* Style des liens normaux */
-    .navbar-center a {
-        display: block;
-        padding: 15px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        width: 100%;
-        text-align: center;
-        font-size: 1.1em;
-        color: var(--couleur-secondaire);
-        text-decoration: none;
-    }
-
-    /* CORRECTIF BOUTON DÉCONNEXION MOBILE */
-    .mobile-only-logout {
-        display: block;
-        width: 100%;
-    }
-
-    .nav-logout-btn {
-        display: block;
-        width: 100%;
-        padding: 15px 0;
-
-        /* On retire le style "bouton gris" par défaut */
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-
-        /* On force la police et la couleur blanche */
-        color: var(--couleur-secondaire) !important; /* FORCE LE BLANC */
-        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 1.1em;
-        font-weight: 500;
-        cursor: pointer;
-        text-align: center;
-    }
-
-    /* Effet au survol sur mobile */
-    .nav-logout-btn:hover, .navbar-center a:hover {
-        background-color: rgba(255,255,255,0.05);
-        color: var(--couleur-tertiaire) !important;
-    }
-
-    /* 4. Gestion des éléments "Desktop Only" et "Mobile Only" */
-    .desktop-only {
-        display: none !important;
-    }
-    .mobile-only-logout, .mobile-only-link {
-        display: block; /* On affiche la déco/connexion dans le menu */
-    }
-
-    /* 5. Ajustement de la partie Droite (Icônes) */
-    .navbar-right {
-        margin-left: auto; /* Pousse à droite avant le burger */
-        gap: 15px;
-        order: 2;
-    }
-
-    /* Petite réduction des icônes pour gagner de la place */
-    .nav-icon-link { font-size: 1.4em; margin-right: 5px; }
-    .navbar-profile-pic, .default-nav-icon { width: 32px; height: 32px; margin-right: 0; }
-
-    /* --- RESTE DU SITE (Grilles) --- */
-    .bento-container { grid-template-columns: 1fr; margin-top: 20px; }
-    .bottom-grid { grid-template-columns: 1fr 1fr; }
-    .article-layout { grid-template-columns: 1fr; gap: 30px; padding: 0 15px; }
-    .article-sidebar { position: static; height: auto; overflow: visible; }
-    .commentaires-section { padding: 15px; }
-    .profile-layout { grid-template-columns: 1fr; }
-    .profile-header-content { flex-direction: column; text-align: center; }
-    .profile-header-card {
-        padding: 20px; /* 20px suffisent sur mobile (au lieu de 40) */
-        margin-top: 20px;
-    }
 }

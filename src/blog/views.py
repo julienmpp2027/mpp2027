@@ -329,6 +329,11 @@ class AuteurProfileView(DetailView):
 
         qs_comments = Commentaire.objects.filter(auteur=auteur, approuve=True).order_by('-date_creation')
 
+        qs_comments = Commentaire.objects.filter(
+            auteur=auteur,
+            approuve=True,
+            article__statut=Article.Status.PUBLISHED
+        ).order_by('-date_creation')
         # 2. PAGINATION ARTICLES (5 par page)
         # On regarde si l'URL contient ?page_articles=2
         paginator_art = Paginator(qs_articles, 5)
