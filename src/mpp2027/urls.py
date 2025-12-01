@@ -31,6 +31,7 @@ urlpatterns = [
     path('blog/', include('blog.urls', namespace='blog')),
     path('comptes/', include('users.urls', namespace='users')),
     path('messagerie/', include('messagerie.urls', namespace='messagerie')),
+    path('simulateur/', include('simulateur.urls', namespace='simulateur')),
 ]
 
 # Ne faites ceci qu'en mode DEBUG (JUSTE POUR DEVELOPPEMENT)

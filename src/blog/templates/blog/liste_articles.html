@@ -10,55 +10,52 @@
         <span class="sr-only">Découvrir le projet</span>
    </a>
 
-    <a href="{% url 'blog:articles-par-categorie' slug_categorie='programme' %}" style="text-decoration: none; color: inherit;" title="Découvrir le Projet MPP 2027">
-        <h2 class="section-title">À la une</h2>
-    </a>
+    <div class="header-container" style="max-width: 1400px; margin: 40px auto 20px auto; padding: 0 20px;">
+        <h2 class="section-title" style="margin: 0;">
+            <i class="far fa-newspaper" style="margin-right: 10px;"></i> À la une
+        </h2>
+    </div>
 
     {% if articles_une %}
     <div class="bento-container">
-
         <div class="card-featured">
             {% with article=articles_une.0 %}
                 {% if article.image_banniere %}
                     <img src="{{ article.image_banniere.url }}" alt="{{ article.titre }}" class="card-featured-img">
                 {% else %}
-                    <div style="height: 300px; background: #ccc; display:flex; align-items:center; justify-content:center; color: #555;">Pas d'image</div>
+                    <div style="height: 300px; background: #eee; display:flex; align-items:center; justify-content:center; color: #999;">
+                        <i class="fas fa-image" style="font-size: 3em;"></i>
+                    </div>
                 {% endif %}
-
                 <div class="card-featured-content">
                     <h3 style="margin-top:0; font-size: 1.5em; text-transform: uppercase;">
                         <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit;">
                             {{ article.titre }}
                         </a>
                     </h3>
-                    <!--<p style="color: #666;">
-                        {{ article.contenu|striptags|truncatewords:25 }}
-                    </p>-->
-                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="color: var(--couleur-principale); font-weight: bold;">
-                        &rarr; Lire l'article
+                    <p style="color: #666;">{{ article.contenu|striptags|truncatewords:25 }}</p>
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="color: var(--couleur-principale); font-weight: bold; margin-top: 10px; display: inline-block;">
+                        Lire l'article &rarr;
                     </a>
                 </div>
             {% endwith %}
         </div>
 
         <div class="side-column">
-
             {% if articles_une.1 %}
                 {% with article=articles_une.1 %}
                 <div class="card-module">
-                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit; display: flex; width: 100%; align-items: center; gap: 15px;">
-
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}">
                         {% if article.image_banniere %}
                             <img src="{{ article.image_banniere.url }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
                         {% else %}
-                             <div style="width: 80px; height: 80px; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                 <i class="fas fa-newspaper" style="font-size: 2em; color: #ccc;"></i>
+                             <div style="width: 80px; height: 80px; background: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                 <i class="fas fa-newspaper" style="font-size: 1.5em; color: #ccc;"></i>
                              </div>
                         {% endif %}
-
                         <div>
-                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre|truncatewords:5 }}</h4>
-                            <!--<p style="font-size: 0.9em; margin-top: 5px; opacity: 0.8;">{{ article.contenu|striptags|truncatewords:10 }}</p>-->
+                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1em; line-height: 1.3;">{{ article.titre|truncatewords:6 }}</h4>
+                            <p style="font-size: 0.85em; margin-top: 5px; opacity: 0.8;">{{ article.contenu|striptags|truncatewords:10 }}</p>
                         </div>
                     </a>
                 </div>
@@ -68,59 +65,254 @@
             {% if articles_une.2 %}
                 {% with article=articles_une.2 %}
                 <div class="card-module blue-gradient">
-                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="text-decoration: none; color: inherit; display: flex; width: 100%; align-items: center; justify-content: space-between;">
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" style="justify-content: space-between;">
                         <div>
-                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1.1em;">{{ article.titre }}</h4>
-                            <!--<p style="font-size: 0.9em; margin-top: 5px;">{{ article.contenu|striptags|truncatewords:10 }}</p>-->
+                            <h4 style="margin:0; font-weight:800; text-transform:uppercase; font-size: 1em; line-height: 1.3;">{{ article.titre|truncatewords:6 }}</h4>
+                            <p style="font-size: 0.85em; margin-top: 5px;">{{ article.contenu|striptags|truncatewords:10 }}</p>
                         </div>
-                        {% if article.image_banniere %}
-                            <img src="{{ article.image_banniere.url }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
-                        {% else %}
-                             <div style="width: 80px; height: 80px; background: #eee; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                 <i class="fas fa-newspaper" style="font-size: 2em; color: #ccc;"></i>
-                             </div>
-                        {% endif %}
-                        <!--<i class="fas fa-arrow-right" style="font-size: 1.5em; opacity: 0.8;"></i>-->
+                        <i class="fas fa-arrow-right" style="font-size: 1.2em; opacity: 0.8;"></i>
                     </a>
                 </div>
                 {% endwith %}
             {% endif %}
-
         </div>
     </div>
 
-    {% if articles_une|length > 3 %}
-    <div class="bottom-grid">
+    <div class="main-content-wrapper">
 
-        {% for article in articles_une|slice:"3:7" %}
-        <a href="{% url 'blog:detail-article' slug=article.slug %}" class="card-small" style="text-decoration: none; color: inherit;">
+        <h2 class="section-title-clean">
+            <i class="fas fa-flask" style="margin-right: 10px;"></i> Vos Outils Citoyens
+        </h2>
 
-            {% if article.image_banniere %}
-                <img src="{{ article.image_banniere.url }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 2px solid var(--couleur-principale); flex-shrink: 0;">
-            {% else %}
-                <i class="fas fa-bookmark card-icon" style="flex-shrink: 0;"></i>
-            {% endif %}
+        <div class="simulators-grid">
+            <a href="{% url 'simulateur:retraite' %}" class="card-module hover-lift" style="text-decoration: none; color: inherit; padding: 25px;">
+                <div class="icon-box red-bg">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div style="flex: 1;">
+                    <strong class="simu-title">Simulateur Retraite</strong>
+                    <span class="simu-desc">Calculez votre pension et âge de départ</span>
+                </div>
+                <i class="fas fa-chevron-right arrow-icon"></i>
+            </a>
 
-            <div style="flex: 1;"> <strong style="
-                    text-transform: uppercase;
-                    font-size: 0.9em;
-                    line-height: 1.4;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 3; /* Limite à 3 lignes */
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                ">
-                    {{ article.titre|split_title }}
-                </strong>
+            <a href="{% url 'simulateur:pouvoir_achat' %}" class="card-module hover-lift" style="text-decoration: none; color: inherit; padding: 25px;">
+                <div class="icon-box green-bg">
+                    <i class="fas fa-shopping-basket"></i>
+                </div>
+                <div style="flex: 1;">
+                    <strong class="simu-title">Pouvoir d'Achat</strong>
+                    <span class="simu-desc">Mesurez l'impact RDC + Impôts + TVA</span>
+                </div>
+                <i class="fas fa-chevron-right arrow-icon"></i>
+            </a>
+        </div>
+
+        {% if articles_une %}
+        <div class="carousel-section">
+
+            <a href="{% url 'blog:articles-par-categorie' slug_categorie='programme' %}" class="programme-link">
+                <h2 class="section-title-clean" style="margin-bottom: 0;">
+                    <span><i class="fas fa-book-open" style="margin-right: 10px;"></i> Le Programme</span>
+                </h2>
+                <span class="btn-see-all">
+                    VOIR TOUT <i class="fas fa-arrow-right"></i>
+                </span>
+            </a>
+
+            <div class="carousel-wrapper">
+                <button class="carousel-arrow left" onclick="scrollCarousel('left')"><i class="fas fa-chevron-left"></i></button>
+
+                <div class="carousel-track" id="carouselTrack">
+                    {% for article in articles_une %}
+                    <a href="{% url 'blog:detail-article' slug=article.slug %}" class="card-small carousel-item hover-lift">
+                        {% if article.image_banniere %}
+                            <img src="{{ article.image_banniere.url }}" class="carousel-thumb">
+                        {% else %}
+                            <div class="carousel-thumb-placeholder">
+                                <i class="fas fa-bookmark"></i>
+                            </div>
+                        {% endif %}
+
+                        <div style="flex: 1; padding-right: 10px;">
+                            <strong class="carousel-title">
+                                {{ article.titre|split_title }}
+                            </strong>
+                            <span style="font-size: 0.8em; color: #888; display: block; margin-top: 5px;">
+                                Lire la fiche &rarr;
+                            </span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <button class="carousel-arrow right" onclick="scrollCarousel('right')"><i class="fas fa-chevron-right"></i></button>
             </div>
-        </a>
-        {% endfor %}
+        </div>
+        {% endif %}
 
     </div>
+    {% else %}
+        <p style="text-align:center; padding: 40px;">Aucun article à la une pour le moment.</p>
     {% endif %}
 
-    {% else %}
-        <p style="text-align:center; padding: 40px;">Aucun article à la une pour le moment. Allez dans l'admin pour en configurer.</p>
-    {% endif %}
+<script>
+    function scrollCarousel(direction) {
+        const track = document.getElementById('carouselTrack');
+        const scrollAmount = 320;
+        if (direction === 'left') {
+            track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        } else {
+            track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    }
+</script>
+
+<style>
+    /* CONTENEUR PRINCIPAL ALIGNÉ */
+    .main-content-wrapper {
+        max-width: 1400px;
+        margin: 0 auto 60px auto;
+        padding: 0 20px;
+        width: 100%;
+    }
+
+    .section-title-clean {
+        font-size: 1.5em; color: white; font-weight: bold; margin-bottom: 20px; margin-top: 50px;
+        display: flex; align-items: center;
+    }
+
+    /* GRILLE SIMULATEURS */
+    .simulators-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+
+    /* STYLES SIMULATEURS */
+    .icon-box {
+        width: 60px; height: 60px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 20px;
+        font-size: 1.8em;
+    }
+    .red-bg { background-color: rgba(195, 48, 55, 0.1); color: #C33037; }
+    .green-bg { background-color: rgba(30, 142, 62, 0.1); color: #1E8E3E; }
+
+    .simu-title { text-transform: uppercase; font-size: 1.1em; display: block; margin-bottom: 4px; color: #1C3047; }
+    .simu-desc { font-size: 0.9em; color: #666; }
+    .arrow-icon { color: #ccc; }
+
+    /* CARROUSEL : FIX FLÈCHES */
+    .carousel-section { margin-bottom: 80px; }
+
+    .programme-link {
+        text-decoration: none; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+    }
+    .btn-see-all {
+        font-size: 0.75em; background: #C33037; color: white; padding: 8px 20px; border-radius: 50px;
+        text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; transition: transform 0.2s;
+    }
+    .btn-see-all:hover { transform: scale(1.05); }
+
+    .carousel-wrapper {
+        position: relative;
+        padding: 0 50px; /* CRUCIAL : Laisse la place pour les flèches */
+    }
+
+    .carousel-track {
+        display: flex; gap: 20px; overflow-x: auto;
+        scroll-snap-type: x mandatory; scrollbar-width: none;
+        padding: 10px 5px;
+    }
+    .carousel-track::-webkit-scrollbar { display: none; }
+
+    .carousel-item {
+        min-width: 280px; width: 280px; flex: 0 0 auto;
+        scroll-snap-align: start; margin: 0;
+        background: white; border-radius: 15px; padding: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex; align-items: center; gap: 15px;
+        text-decoration: none; color: inherit;
+    }
+
+    .carousel-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+    .carousel-thumb-placeholder {
+        width: 60px; height: 60px; background: #eee; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; color: #999; flex-shrink: 0;
+    }
+    .carousel-title {
+        text-transform: uppercase; font-size: 0.9em; line-height: 1.3;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        color: #1C3047;
+    }
+
+    /* Flèches positionnées DANS le padding du wrapper */
+    .carousel-arrow {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        width: 40px; height: 40px; border-radius: 50%; background: white; border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 10;
+        color: var(--couleur-principale); transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .carousel-arrow:hover { background: #C33037; color: white; }
+
+    .carousel-arrow.left { left: 0; } /* Collé au bord gauche du wrapper */
+    .carousel-arrow.right { right: 0; } /* Collé au bord droit du wrapper */
+
+    .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+    .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+
+    /* MOBILE */
+   /* RESPONSIVE MOBILE OPTIMISÉ */
+    @media (max-width: 900px) {
+
+        /* 1. Simulateurs en une seule colonne */
+        .simulators-grid { grid-template-columns: 1fr; }
+
+        /* 2. Carrousel "Bord à Bord" (Full Bleed) */
+        .carousel-arrow { display: none; } /* On cache les flèches */
+
+        .carousel-wrapper {
+            padding: 0;
+            /* Astuce magique : On utilise des marges négatives pour annuler le padding du conteneur parent */
+            margin-left: -20px;
+            margin-right: -20px;
+        }
+
+        .carousel-track {
+            /* On remet le padding ici pour que la 1ère carte soit alignée avec le texte */
+            padding: 10px 20px;
+            /* Petit gap pour bien voir la séparation */
+            gap: 15px;
+        }
+
+        .carousel-item {
+            /* On réduit la largeur à 80-85% de l'écran.
+               Ainsi, 15% de la carte SUIVANTE est visible à droite.
+               C'est l'indice visuel universel pour dire "scrollez-moi" ! */
+            min-width: 82vw;
+            width: 82vw;
+        }
+
+        /* 3. Ré-affichage du bouton "Voir tout" */
+        .btn-see-all {
+            display: inline-flex; /* On le réactive */
+            align-items: center;
+            font-size: 0.65em;
+            padding: 6px 12px;
+            white-space: nowrap; /* Empêche le texte de se casser */
+        }
+
+        /* Ajustement de l'en-tête pour éviter les collisions */
+        .programme-link {
+            align-items: center; /* Centre verticalement le titre et le bouton */
+        }
+
+        .section-title-clean {
+            font-size: 1.3em; /* Un poil plus petit sur mobile */
+        }
+    }
+</style>
 
 {% endblock content %}

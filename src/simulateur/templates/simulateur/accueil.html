@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Les Simulateurs - MPP 2027{% endblock title %}
+
+{% block content %}
+
+<div class="profile-header-card">
+    <div class="profile-header-content">
+        <div class="profile-avatar-xl default" style="background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2);">
+            <i class="fas fa-flask"></i>
+        </div>
+        <div class="profile-info">
+            <h1 class="profile-name">Les Simulateurs MPP 2027</h1>
+            <p class="profile-meta">
+                Testez l'impact concret de notre programme sur votre vie. Transparence totale, chiffres réels.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="max-width: 1400px; width: 96%; margin: 0 auto 60px auto;">
+
+    <div class="hub-grid">
+
+        <a href="{% url 'simulateur:retraite' %}" class="hub-card link-retraite">
+            <div class="hub-icon-circle red-theme">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="hub-content">
+                <h2>Simulateur Retraite 2027</h2>
+                <p>Découvrez votre "Compte Patrimoine", choisissez votre âge de départ et calculez votre pension en temps réel.</p>
+                <span class="btn-fake red">Lancer la simulation &rarr;</span>
+            </div>
+        </a>
+
+        <a href="{% url 'simulateur:pouvoir_achat' %}" class="hub-card link-pa">
+            <div class="hub-icon-circle green-theme">
+                <i class="fas fa-shopping-basket"></i>
+            </div>
+            <div class="hub-content">
+                <h2>Simulateur Pouvoir d'Achat</h2>
+                <p>Mesurez l'impact combiné du RDC, de la baisse d'impôts sur le travail et de la TVA sur votre reste à vivre.</p>
+                <span class="btn-fake green">Lancer la simulation &rarr;</span>
+            </div>
+        </a>
+
+    </div>
+
+</div>
+
+<style>
+    /* Grille */
+    .hub-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 40px;
+    }
+
+    /* La Carte-Lien (Format Vertical Centré) */
+    .hub-card {
+        display: flex;
+        flex-direction: column; /* On empile verticalement */
+        align-items: center;    /* On centre horizontalement */
+        text-align: center;     /* On centre le texte */
+
+        background: white;
+        padding: 40px 30px;     /* Plus d'espace interne */
+        border-radius: 15px;
+        text-decoration: none;
+        color: #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%; /* S'assure que les cartes ont la même hauteur */
+    }
+
+    /* Effet au survol */
+    .hub-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    /* Cercles d'icônes (Taille identique à celle du header) */
+    .hub-icon-circle {
+        width: 120px;  /* Agrandissement pour matcher le haut */
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3em; /* Icône plus grosse */
+        color: white;
+        flex-shrink: 0;
+        margin-right: 0;      /* Reset de la marge latérale */
+        margin-bottom: 25px;  /* Espace sous l'icône */
+        border: 4px solid white;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .red-theme { background-color: var(--couleur-tertiaire); }
+    .green-theme { background-color: #1E8E3E; }
+
+    /* Texte */
+    .hub-content h2 {
+        margin: 0 0 15px 0;
+        font-size: 1.6em;
+        color: var(--couleur-principale);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .hub-content p {
+        margin: 0 0 30px 0;
+        color: #666;
+        line-height: 1.6;
+        font-size: 1.05em;
+        min-height: 80px; /* Pour aligner les boutons même si le texte diffère */
+    }
+
+    /* Faux boutons */
+    .btn-fake {
+        display: inline-block;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: bold;
+        font-size: 1em;
+        transition: all 0.2s;
+    }
+    .btn-fake.red {
+        background: rgba(195, 48, 55, 0.1);
+        color: var(--couleur-tertiaire);
+    }
+    .btn-fake.green {
+        background: rgba(30, 142, 62, 0.1);
+        color: #1E8E3E;
+    }
+
+    /* Changement de couleur du bouton au survol */
+    .hub-card:hover .btn-fake.red { background: var(--couleur-tertiaire); color: white; box-shadow: 0 4px 10px rgba(195, 48, 55, 0.3); }
+    .hub-card:hover .btn-fake.green { background: #1E8E3E; color: white; box-shadow: 0 4px 10px rgba(30, 142, 62, 0.3); }
+
+    /* Responsive Mobile */
+    @media (max-width: 768px) {
+        .hub-grid {
+            grid-template-columns: 1fr;
+        }
+        .hub-card {
+            padding: 30px 20px;
+        }
+        .hub-content p {
+            min-height: auto;
+        }
+    }
+</style>
+
+{% endblock content %}

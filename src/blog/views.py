@@ -271,14 +271,17 @@ class CategorieArticleListView(ListView):
 
     def get_context_data(self, **kwargs):
         """
-        On ajoute la catégorie au contexte pour pouvoir
-        afficher un titre du genre "Articles dans la catégorie : Python"
+        Enrichit le contexte pour envoyer des données supplémentaires au template.
         """
-        # On récupère le contexte de base (qui contient déjà nos 'articles')
         context = super().get_context_data(**kwargs)
 
-        # On ajoute notre catégorie (qu'on a sauvegardée dans get_queryset)
-        context['categorie'] = self.categorie
+        # --- LOGIQUE POUR LA GRILLE BENTO & CARROUSEL ---
+        # On récupère TOUS les articles publiés qui ont une position "à la une" définie.
+        # On les trie par ordre de position (1, 2, 3...)
+        context['articles_une'] = Article.objects.filter(
+            statut=Article.Status.PUBLISHED,
+            est_a_la_une__isnull=False
+        ).order_by('est_a_la_une')
 
         return context
 

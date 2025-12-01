@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Simulateur Retraite - MPP 2027{% endblock title %}
+
+{% block content %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<div class="profile-header-card">
+    <div class="profile-header-content">
+        <div class="profile-avatar-xl default" style="background: var(--couleur-tertiaire); border-color: white;">
+            <i class="fas fa-calculator"></i>
+        </div>
+        <div class="profile-info">
+            <h1 class="profile-name">Simulateur Retraite 2027</h1>
+            <p class="profile-meta">
+                Découvrez votre "Compte Patrimoine" et choisissez votre liberté.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container simu-container">
+
+    <div class="simu-grid">
+
+        <div class="simu-col-left">
+            <div class="dashboard-card full-height">
+                <h3 class="card-title">
+                    <i class="fas fa-sliders-h"></i> Vos Paramètres
+                </h3>
+
+                <div class="form-group">
+                    <label>Salaire Net Mensuel Moyen (€)</label>
+                    <input type="number" id="salaire" value="2000" class="input-simu" oninput="calculerRetraite()">
+                </div>
+
+                <div class="form-group">
+                    <label>Années Travaillées</label>
+                    <input type="number" id="annees" value="43" class="input-simu" oninput="calculerRetraite()">
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre d'enfants</label>
+                    <div class="input-group-btn">
+                        <button type="button" class="btn-action outline bold" onclick="changeValue('enfants', -1)">-</button>
+                        <input type="number" id="enfants" value="0" class="input-center bold" oninput="calculerRetraite()">
+                        <button type="button" class="btn-action outline bold" onclick="changeValue('enfants', 1)">+</button>
+                    </div>
+                    <div class="help-text green">
+                        <i class="fas fa-arrow-down"></i> Réduit votre diviseur de {{ config.BONUS_ENFANT }} an / enfant
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pénibilité</label>
+                    <input type="range" id="penibilite" min="0" max="2" step="0.25" value="0" class="range-simu" oninput="calculerRetraite()">
+                    <div class="range-labels">
+                        <span>Aucune</span>
+                        <span id="penibilite-val" class="tertiaire-color bold">0 an</span>
+                        <span>Max (-2 ans)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="simu-col-right sticky-column">
+
+            <div class="dashboard-card dark-card no-margin-bottom">
+                <label class="white-label">
+                    <i class="far fa-clock"></i> Âge de départ choisi
+                </label>
+
+                <div class="age-display-group">
+                    <span id="age-depart-display" class="big-age tertiaire-color">64 ans</span>
+                    <div class="text-right">
+                        <span class="small-label white-opacity">Diviseur</span>
+                        <strong id="diviseur-display" class="big-diviseur">--</strong>
+                    </div>
+                </div>
+
+                <input type="range" id="age-depart" min="55" max="70" step="1" value="64" class="range-simu white-range" oninput="calculerRetraite()">
+                <div class="range-labels white-opacity">
+                    <span>55 ans</span>
+                    <span>70 ans</span>
+                </div>
+            </div>
+
+            <div class="dashboard-card center-text" style="margin-top: 20px;">
+                <h2 class="card-subtitle">Pension Mensuelle Net</h2>
+
+                <div class="main-pension-group">
+                    <span id="pension-montant" class="huge-pension green-color">-- €</span>
+                    <span class="per-month green-color">/ mois</span>
+                </div>
+
+                <div class="details-box text-left">
+
+                    <div class="detail-row">
+                        <span>Pension Base (Mathématique) :</span>
+                        <strong id="pension-base">0 €</strong>
+                    </div>
+
+                    <div id="ligne-rdc" class="detail-row green-color">
+                        <span>+ RDC (Boost Pouvoir d'Achat) :</span>
+                        <strong>+ {{ config.MONTANT_RDC }} €</strong>
+                    </div>
+
+                    <div id="badge-minimum" class="badge-min" style="display: none;">
+                        <i class="fas fa-shield-alt"></i> <strong>Minimum Garanti (67 ans) activé</strong>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="points-details grey-color small-text">
+                        <div class="detail-row">
+                            <span>Capital Brut :</span>
+                            <span id="capital-brut">0 pts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Capital Net (Après solidarité) :</span>
+                            <span id="capital-net" class="dark-blue bold">0 pts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card action-card">
+                <div class="bold main-color" style="margin-bottom: 10px;">
+                    Partager ou Sauvegarder
+                </div>
+
+                <div class="social-buttons-group">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn-social fb" title="Partager sur Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+
+                    <a href="#" id="share-x" target="_blank" class="btn-social x" title="Partager sur X">
+                        <i class="fab fa-x-twitter"></i>
+                    </a>
+
+                    <button onclick="telechargerPDF()" class="btn-social pdf" title="Télécharger en PDF">
+                        <i class="fas fa-file-pdf"></i> Télécharger ma simulation
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="pdf-template-container" style="position: absolute; left: -9999px; top: 0;">
+    <div id="pdf-template" style="width: 794px; padding: 40px; background: white; font-family: sans-serif; color: #333;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--couleur-tertiaire); padding-bottom: 20px; margin-bottom: 30px;">
+            <img src="{% static 'img/logo.png' %}" alt="MPP2027 Logo" style="height: 60px; (faute d'image, un placeholder) background: #eee;">
+            <div style="text-align: right;">
+                <h1 style="margin: 0; color: var(--couleur-principale); font-size: 24px;">Simulation Retraite</h1>
+                <p style="margin: 5px 0 0; color: #666;">Programme MPP 2027</p>
+            </div>
+        </div>
+
+        <h2 style="text-align: center; color: var(--couleur-tertiaire); font-size: 28px; margin-bottom: 40px;">
+            Votre Compte Patrimoine
+        </h2>
+
+        <div style="background: #f4f7fa; padding: 25px; border-radius: 10px; margin-bottom: 30px;">
+            <h3 style="margin-top: 0; color: var(--couleur-principale); border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                1. Vos Hypothèses de carrière
+            </h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Salaire moyen estimé :</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-salaire"></span> € net/mois</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Durée de carrière :</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-annees"></span> ans</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Enfants :</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-enfants"></span></td>
+                </tr>
+                 <tr>
+                    <td style="padding: 8px 0; color: #666;">Reconnaissance Pénibilité :</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-penibilite"></span> ans</td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="border: 2px solid var(--couleur-tertiaire); padding: 25px; border-radius: 10px; background: #fff;">
+             <h3 style="margin-top: 0; color: var(--couleur-tertiaire); border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                2. Votre choix de liberté
+            </h3>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 30px 0;">
+                 <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #666;">Départ choisi à</div>
+                    <div style="font-size: 32px; font-weight: bold; color: var(--couleur-principale);"><span id="pdf-age"></span> ans</div>
+                </div>
+                <div style="font-size: 24px; color: #ccc;">&rarr;</div>
+                 <div style="text-align: center;">
+                    <div style="font-size: 14px; color: #666;">Diviseur (Espérance de vie)</div>
+                    <div style="font-size: 32px; font-weight: bold; color: var(--couleur-principale);"><span id="pdf-diviseur"></span></div>
+                </div>
+            </div>
+
+            <div style="background: var(--couleur-tertiaire); color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0;">
+                <div style="font-size: 16px; text-transform: uppercase; opacity: 0.9;">Pension Mensuelle Estimée (Net)</div>
+                <div style="font-size: 48px; font-weight: 800; margin: 10px 0;"><span id="pdf-pension"></span> €</div>
+                <div style="font-size: 14px; opacity: 0.9;">Incluant RDC de {{ config.MONTANT_RDC }} €</div>
+                <div id="pdf-badge-min" style="display: none; background: #C33037; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; display: inline-block;">Minimum Garanti Activé</div>
+            </div>
+
+            <div style="text-align: center; font-size: 12px; color: #666;">
+                Capital Points acquis : <span id="pdf-capital"></span> pts
+            </div>
+
+        </div>
+
+        <div style="margin-top: 50px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 15px;">
+            <p>Ce document est une simulation non contractuelle basée sur les paramètres du programme MPP 2027.</p>
+            <p>Généré le <span id="pdf-date"></span> sur mpp2027.fr</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // --- LOGIQUE JS EXISTANTE ---
+    function changeValue(id, delta) {
+        let el = document.getElementById(id);
+        let val = parseInt(el.value) || 0;
+        val += delta;
+        if(val < 0) val = 0;
+        el.value = val;
+        calculerRetraite();
+    }
+
+    function calculerRetraite() {
+        let salaire = document.getElementById('salaire').value;
+        let annees = document.getElementById('annees').value;
+        let enfants = document.getElementById('enfants').value;
+        let penibilite = document.getElementById('penibilite').value;
+        let ageDepart = document.getElementById('age-depart').value;
+
+        document.getElementById('age-depart-display').innerText = ageDepart + " ans";
+        document.getElementById('penibilite-val').innerText = "-" + penibilite + " an(s)";
+
+        let url = `{% url 'simulateur:api_calcul' %}?salaire=${salaire}&annees=${annees}&enfants=${enfants}&penibilite=${penibilite}&age_depart=${ageDepart}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('diviseur-display').innerText = data.diviseur;
+                document.getElementById('pension-montant').innerText = data.pension_finale.toLocaleString();
+                document.getElementById('pension-base').innerText = data.pension_base.toLocaleString() + " €";
+                document.getElementById('capital-brut').innerText = data.capital_brut.toLocaleString() + " pts";
+                document.getElementById('capital-net').innerText = data.capital_net.toLocaleString() + " pts";
+
+                // Store raw data for PDF
+                document.getElementById('pension-montant').dataset.raw = data.pension_finale;
+
+                if (data.est_minime) {
+                    document.getElementById('badge-minimum').style.display = 'block';
+                } else {
+                    document.getElementById('badge-minimum').style.display = 'none';
+                }
+
+                let shareText = `Je viens de simuler ma retraite avec le programme MPP 2027 : ${data.pension_finale}€ par mois à ${ageDepart} ans !`;
+                let shareUrl = "{{ request.build_absolute_uri }}";
+                let twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+                document.getElementById('share-x').href = twitterUrl;
+            })
+            .catch(error => console.error('Erreur:', error));
+    }
+
+    // --- NOUVELLE FONCTION PDF PRO ---
+    function telechargerPDF() {
+        const { jsPDF } = window.jspdf;
+
+        // 1. Remplir le template caché avec les données actuelles
+        document.getElementById('pdf-salaire').innerText = document.getElementById('salaire').value;
+        document.getElementById('pdf-annees').innerText = document.getElementById('annees').value;
+        document.getElementById('pdf-enfants').innerText = document.getElementById('enfants').value;
+        document.getElementById('pdf-penibilite').innerText = document.getElementById('penibilite').value;
+
+        document.getElementById('pdf-age').innerText = document.getElementById('age-depart').value;
+        document.getElementById('pdf-diviseur').innerText = document.getElementById('diviseur-display').innerText;
+        // Utilisation de la valeur brute si disponible, sinon le texte affiché
+        let pensionValue = document.getElementById('pension-montant').dataset.raw || document.getElementById('pension-montant').innerText.replace('€','').trim();
+         document.getElementById('pdf-pension').innerText = parseInt(pensionValue).toLocaleString();
+
+        document.getElementById('pdf-capital').innerText = document.getElementById('capital-net').innerText.replace('pts','');
+        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('fr-FR');
+
+        // Gestion du badge minimum sur le PDF
+        if(document.getElementById('badge-minimum').style.display !== 'none') {
+             document.getElementById('pdf-badge-min').style.display = 'inline-block';
+        } else {
+             document.getElementById('pdf-badge-min').style.display = 'none';
+        }
+
+        // 2. Rendre le template visible pour html2canvas (mais hors écran)
+        const templateContainer = document.getElementById('pdf-template-container');
+        const templateElement = document.getElementById('pdf-template');
+
+        // 3. Générer l'image et le PDF
+        html2canvas(templateElement, {
+            scale: 2, // Meilleure résolution
+            useCORS: true // Pour charger le logo si nécessaire
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            // A4 taille : 210mm x 297mm
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = 210;
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save("Simulation-Retraite-MPP2027.pdf");
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", calculerRetraite);
+</script>
+
+<style>
+    /* --- NOUVEAU CSS NETTOYÉ POUR ALIGNEMENT --- */
+    .simu-container {
+        max-width: 1100px;
+        margin-bottom: 60px;
+        /* Ensure centering */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .simu-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Deux colonnes parfaitement égales */
+        gap: 30px;
+        align-items: start; /* Important pour le sticky */
+    }
+
+    /* Sur mobile, une seule colonne */
+    @media (max-width: 900px) {
+        .simu-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .simu-col-left, .simu-col-right {
+        width: 100%; /* Force le conteneur à prendre toute la largeur de sa colonne */
+    }
+
+    .sticky-column {
+        position: sticky;
+        top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .full-height { height: 100%; }
+    .no-margin-bottom { margin-bottom: 0; }
+    .center-text { text-align: center; }
+    .text-right { text-align: right; }
+    .text-left { text-align: left; }
+
+    /* Styles des inputs et labels */
+    .card-title { margin-top:0; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 25px; }
+    .card-subtitle { margin: 0; font-size: 1.1em; text-transform: uppercase; color: #666; }
+
+    .input-simu { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1em; color: #333; }
+    .input-group-btn { display: flex; align-items: center; gap: 15px; }
+    .input-center { width: 60px; text-align: center; border: 1px solid #ddd; border-radius: 5px; padding: 5px; font-size: 1.1em; }
+
+    .range-simu { width: 100%; accent-color: var(--couleur-tertiaire); margin: 10px 0; }
+    .range-labels { display: flex; justify-content: space-between; font-size: 0.9em; color: #666; }
+
+    .white-label { color: white; font-size: 1.1em; display: block; margin-bottom: 15px; }
+    .white-range { accent-color: white; }
+    .white-opacity { opacity: 0.7; color: white; }
+
+    /* Couleurs et Textes */
+    .bold { font-weight: bold; }
+    .green { color: #1E8E3E; }
+    .green-color { color: #1E8E3E; }
+    .grey-color { color: #777; }
+    .tertiaire-color { color: var(--couleur-tertiaire); }
+    .dark-blue { color: #1C3047; }
+    .main-color { color: var(--couleur-principale); }
+
+    .dark-card { background: #1C3047; color: white; border: none; }
+
+    /* Résultats Big sizes */
+    .age-display-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .big-age { font-size: 2.5em; font-weight: 800; }
+    .big-diviseur { font-size: 1.5em; display: block; }
+
+    .main-pension-group { margin: 20px 0; }
+    .huge-pension { font-size: 3.5em; font-weight: 800; }
+    .per-month { font-size: 1.2em; }
+
+    /* Details Box */
+    .details-box { background: #f9f9f9; padding: 15px; border-radius: 10px; font-size: 0.9em; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .divider { border-top: 1px solid #ddd; margin: 10px 0; }
+    .badge-min { background: #FFF5F5; color: #C33037; padding: 5px; border-radius: 5px; text-align: center; margin: 10px 0; font-size: 0.85em; border: 1px solid #f5c6cb; }
+
+    /* Boutons Sociaux & Action */
+    .action-card { padding: 20px; text-align: center; }
+    .social-buttons-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-social {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 45px; height: 45px; border-radius: 50%; color: white;
+        text-decoration: none; font-size: 1.2em; transition: transform 0.2s; border: none; cursor: pointer;
+    }
+    .btn-social:hover { transform: scale(1.1); filter: brightness(1.1); }
+    .btn-social.fb { background: #1877F2; }
+    .btn-social.x { background: #000; }
+    .btn-social.pdf { background: #C33037; width: auto; padding: 0 20px; border-radius: 8px; font-size: 1em; gap: 8px; height: 45px; }
+</style>
+
+{% endblock content %}

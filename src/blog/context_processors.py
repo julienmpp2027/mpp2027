@@ -13,7 +13,12 @@ def nav_links(request):
     # On commence par une liste de liens que TOUT LE MONDE voit
     links = [
         {'name': 'Accueil', 'url': reverse('blog:liste-articles')},
-        {'name': 'Me Contacter', 'url': reverse('blog:contact')},
+        # --- AJOUT ICI ---
+        {'name': 'Simulateurs', 'url': reverse('simulateur:accueil')},
+        # -----------------
+        {'name': 'Le Projet', 'url': reverse('blog:articles-par-categorie', kwargs={'slug_categorie': 'programme'})},
+        {'name': 'Actualités', 'url': reverse('blog:toutes-actualites')},
+        {'name': 'Contact', 'url': reverse('blog:contact')},
     ]
 
     # On vérifie si l'utilisateur est connecté
