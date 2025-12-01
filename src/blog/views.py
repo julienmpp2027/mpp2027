@@ -57,17 +57,18 @@ class ArticleListView(ListView):
     def get_context_data(self, **kwargs):
         """
         Enrichit le contexte pour envoyer des données supplémentaires au template.
-        Ici : les 3 articles pour la grille 'Bento' (Mesures Phares).
         """
         context = super().get_context_data(**kwargs)
-        nb_articles_une = 7  # nombre d'article a renvoyer
 
-        # --- LOGIQUE POUR LA GRILLE BENTO ---
-        # On récupère les C derniers articles qui sont publiés et dont est_a_la_une=True
+        # ANCIEN CODE (qui limitait) :
+        # nb_articles_une = 7
+        # context['articles_une'] = Article.objects.filter(...).order_by('est_a_la_une')[:nb_articles_une]
+
+        # NOUVEAU CODE (Sans limite) :
         context['articles_une'] = Article.objects.filter(
             statut=Article.Status.PUBLISHED,
             est_a_la_une__isnull=False
-        ).order_by('est_a_la_une')[:nb_articles_une]
+        ).order_by('est_a_la_une')  # On a retiré le [:7] ou [:nb_articles_une] à la fin
 
         return context
 
