@@ -22,14 +22,14 @@ def nav_links(request):
     ]
 
     # On vérifie si l'utilisateur est connecté
-    if request.user.is_authenticated:
+    '''if request.user.is_authenticated:
         # Si oui, on AJOUTE les liens pour les membres
         links.extend([
             {'name': 'Mon Profil Public', 'url': reverse('blog:auteur-profil', kwargs={'pk': request.user.pk})},
             {'name': 'Modifier mon Profil', 'url': reverse('users:profile')},
             {'name': 'Écrire un article', 'url': reverse('blog:article-create')},
             {'name': 'Ma Messagerie', 'url': reverse('messagerie:inbox')},
-        ])
+        ])'''
 
     # On retourne le dictionnaire.
     # La clé 'main_nav_links' sera le nom de la variable dans les templates.

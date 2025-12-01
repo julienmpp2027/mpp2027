@@ -40,7 +40,7 @@
                 <i class="fas fa-bars"></i>
             </div>
 
-            <div class="navbar-center" id="navbar-links">
+            <!--<div class="navbar-center" id="navbar-links">
                 <a href="{% url 'blog:liste-articles' %}">Accueil</a>
 
                 <a href="{% url 'blog:articles-par-categorie' slug_categorie='programme' %}">Le Projet</a>
@@ -57,7 +57,25 @@
                 {% else %}
                     <a href="{% url 'users:login' %}" class="mobile-only-link">Connexion</a>
                 {% endif %}
-            </div>
+            </div>-->
+            <div class="navbar-center" id="navbar-links">
+
+                {% for link in main_nav_links %}
+                    <a href="{{ link.url }}">{{ link.name }}</a>
+                {% endfor %}
+
+                {% if user.is_authenticated %}
+                    <form action="{% url 'users:logout' %}" method="POST" class="mobile-only-logout">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-logout-btn">
+                         Déconnexion
+                        </button>
+                    </form>
+                {% else %}
+                     <a href="{% url 'users:login' %}" class="mobile-only-link">Connexion</a>
+                {% endif %}
+
+</div>
 
             <div class="navbar-right">
                 {% if user.is_authenticated %}
