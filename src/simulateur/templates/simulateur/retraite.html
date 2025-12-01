@@ -35,6 +35,7 @@
                 <div class="form-group">
                     <label>Salaire Net Mensuel Moyen (€)</label>
                     <input type="number" id="salaire" value="2000" class="input-simu" oninput="calculerRetraite()">
+                    <div class="help-text">Moyenne estimée sur l'ensemble de la carrière.</div>
                 </div>
 
                 <div class="form-group">
@@ -55,7 +56,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Pénibilité</label>
+                    <label>Pénibilité (Niveau 0 à 2)</label>
                     <input type="range" id="penibilite" min="0" max="2" step="0.25" value="0" class="range-simu" oninput="calculerRetraite()">
                     <div class="range-labels">
                         <span>Aucune</span>
@@ -88,7 +89,7 @@
                 </div>
             </div>
 
-            <div class="dashboard-card center-text" style="margin-top: 20px;">
+            <div class="dashboard-card center-text result-card-flex">
                 <h2 class="card-subtitle">Pension Mensuelle Net</h2>
 
                 <div class="main-pension-group">
@@ -97,7 +98,6 @@
                 </div>
 
                 <div class="details-box text-left">
-
                     <div class="detail-row">
                         <span>Pension Base (Mathématique) :</span>
                         <strong id="pension-base">0 €</strong>
@@ -127,35 +127,36 @@
                 </div>
             </div>
 
-            <div class="dashboard-card action-card">
-                <div class="bold main-color" style="margin-bottom: 10px;">
-                    Partager ou Sauvegarder
-                </div>
-
-                <div class="social-buttons-group">
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn-social fb" title="Partager sur Facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-
-                    <a href="#" id="share-x" target="_blank" class="btn-social x" title="Partager sur X">
-                        <i class="fab fa-x-twitter"></i>
-                    </a>
-
-                    <button onclick="telechargerPDF()" class="btn-social pdf" title="Télécharger en PDF">
-                        <i class="fas fa-file-pdf"></i> Télécharger ma simulation
-                    </button>
-                </div>
-            </div>
-
         </div>
     </div>
+
+    <div class="dashboard-card action-card" style="margin-top: 30px;">
+        <div class="bold main-color" style="margin-bottom: 10px;">
+            Partager ou Sauvegarder
+        </div>
+
+        <div class="social-buttons-group">
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn-social fb" title="Partager sur Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+
+            <a href="#" id="share-x" target="_blank" class="btn-social x" title="Partager sur X">
+                <i class="fab fa-x-twitter"></i>
+            </a>
+
+            <button onclick="telechargerPDF()" class="btn-social pdf" title="Télécharger en PDF">
+                <i class="fas fa-file-pdf"></i> Télécharger ma simulation
+            </button>
+        </div>
+    </div>
+
 </div>
 
 <div id="pdf-template-container" style="position: absolute; left: -9999px; top: 0;">
     <div id="pdf-template" style="width: 794px; padding: 40px; background: white; font-family: sans-serif; color: #333;">
 
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--couleur-tertiaire); padding-bottom: 20px; margin-bottom: 30px;">
-            <img src="{% static 'img/mon_logo.png' %}" alt="MPP2027 Logo" style="height: 60px; (faute d'image, un placeholder) background: #eee;">
+            <img src="{% static 'img/mon_logo.png' %}" alt="MPP2027 Logo" style="height: 60px;">
             <div style="text-align: right;">
                 <h1 style="margin: 0; color: var(--couleur-principale); font-size: 24px;">Simulation Retraite</h1>
                 <p style="margin: 5px 0 0; color: #666;">Programme MPP 2027</p>
@@ -184,8 +185,8 @@
                     <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-enfants"></span></td>
                 </tr>
                  <tr>
-                    <td style="padding: 8px 0; color: #666;">Reconnaissance Pénibilité :</td>
-                    <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-penibilite"></span> ans</td>
+                    <td style="padding: 8px 0; color: #666;">Pénibilité :</td>
+                    <td style="padding: 8px 0; font-weight: bold; text-align: right;"><span id="pdf-penibilite"></span></td>
                 </tr>
             </table>
         </div>
@@ -211,7 +212,7 @@
                 <div style="font-size: 16px; text-transform: uppercase; opacity: 0.9;">Pension Mensuelle Estimée (Net)</div>
                 <div style="font-size: 48px; font-weight: 800; margin: 10px 0;"><span id="pdf-pension"></span> €</div>
                 <div style="font-size: 14px; opacity: 0.9;">Incluant RDC de {{ config.MONTANT_RDC }} €</div>
-                <div id="pdf-badge-min" style="display: none; background: #C33037; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; display: inline-block;">Minimum Garanti Activé</div>
+                <div id="pdf-badge-min" style="display: none; background: #C33037; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; border: 1px solid white;">Minimum Garanti Activé</div>
             </div>
 
             <div style="text-align: center; font-size: 12px; color: #666;">
@@ -229,7 +230,7 @@
 
 
 <script>
-    // --- LOGIQUE JS EXISTANTE ---
+    // --- JS LOGIC ---
     function changeValue(id, delta) {
         let el = document.getElementById(id);
         let val = parseInt(el.value) || 0;
@@ -260,7 +261,7 @@
                 document.getElementById('capital-brut').innerText = data.capital_brut.toLocaleString() + " pts";
                 document.getElementById('capital-net').innerText = data.capital_net.toLocaleString() + " pts";
 
-                // Store raw data for PDF
+                // Stockage valeur brute pour le PDF
                 document.getElementById('pension-montant').dataset.raw = data.pension_finale;
 
                 if (data.est_minime) {
@@ -270,50 +271,39 @@
                 }
 
                 let shareText = `Je viens de simuler ma retraite avec le programme MPP 2027 : ${data.pension_finale}€ par mois à ${ageDepart} ans !`;
-                let shareUrl = "{{ request.build_absolute_uri }}";
-                let twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+                let twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent("{{ request.build_absolute_uri }}")}`;
                 document.getElementById('share-x').href = twitterUrl;
             })
             .catch(error => console.error('Erreur:', error));
     }
 
-    // --- NOUVELLE FONCTION PDF PRO ---
     function telechargerPDF() {
         const { jsPDF } = window.jspdf;
 
-        // 1. Remplir le template caché avec les données actuelles
         document.getElementById('pdf-salaire').innerText = document.getElementById('salaire').value;
         document.getElementById('pdf-annees').innerText = document.getElementById('annees').value;
         document.getElementById('pdf-enfants').innerText = document.getElementById('enfants').value;
-        document.getElementById('pdf-penibilite').innerText = document.getElementById('penibilite').value;
+        document.getElementById('pdf-penibilite').innerText = document.getElementById('penibilite').value + " an(s)";
 
         document.getElementById('pdf-age').innerText = document.getElementById('age-depart').value;
         document.getElementById('pdf-diviseur').innerText = document.getElementById('diviseur-display').innerText;
-        // Utilisation de la valeur brute si disponible, sinon le texte affiché
+
         let pensionValue = document.getElementById('pension-montant').dataset.raw || document.getElementById('pension-montant').innerText.replace('€','').trim();
-         document.getElementById('pdf-pension').innerText = parseInt(pensionValue).toLocaleString();
+        document.getElementById('pdf-pension').innerText = parseInt(pensionValue).toLocaleString();
 
         document.getElementById('pdf-capital').innerText = document.getElementById('capital-net').innerText.replace('pts','');
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('fr-FR');
 
-        // Gestion du badge minimum sur le PDF
         if(document.getElementById('badge-minimum').style.display !== 'none') {
              document.getElementById('pdf-badge-min').style.display = 'inline-block';
         } else {
              document.getElementById('pdf-badge-min').style.display = 'none';
         }
 
-        // 2. Rendre le template visible pour html2canvas (mais hors écran)
-        const templateContainer = document.getElementById('pdf-template-container');
-        const templateElement = document.getElementById('pdf-template');
+        const element = document.getElementById("pdf-template");
 
-        // 3. Générer l'image et le PDF
-        html2canvas(templateElement, {
-            scale: 2, // Meilleure résolution
-            useCORS: true // Pour charger le logo si nécessaire
-        }).then(canvas => {
+        html2canvas(element, { scale: 2 }).then(canvas => {
             const imgData = canvas.toDataURL('image/jpeg', 1.0);
-            // A4 taille : 210mm x 297mm
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = 210;
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -327,63 +317,53 @@
 </script>
 
 <style>
-    /* --- NOUVEAU CSS NETTOYÉ POUR ALIGNEMENT --- */
+    /* --- CSS PROPRE & ALIGNÉ --- */
     .simu-container {
         max-width: 1100px;
         margin-bottom: 60px;
-        /* Ensure centering */
-        margin-left: auto;
-        margin-right: auto;
+        margin-left: auto; margin-right: auto;
     }
 
     .simu-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Deux colonnes parfaitement égales */
+        grid-template-columns: 1fr 1fr; /* 2 colonnes égales */
         gap: 30px;
-        align-items: start; /* Important pour le sticky */
-    }
-
-    /* Sur mobile, une seule colonne */
-    @media (max-width: 900px) {
-        .simu-grid {
-            grid-template-columns: 1fr;
-        }
+        align-items: stretch; /* Hauteur égale */
     }
 
     .simu-col-left, .simu-col-right {
-        width: 100%; /* Force le conteneur à prendre toute la largeur de sa colonne */
+        width: 100%;
+        display: flex; /* Flex pour que le contenu interne s'étire */
+        flex-direction: column;
     }
 
-    .sticky-column {
-        position: sticky;
-        top: 20px;
-        display: flex;
-        flex-direction: column;
+    /* La colonne de droite gère l'espacement entre le bloc noir et le bloc blanc */
+    .simu-col-right {
         gap: 20px;
     }
 
-    .full-height { height: 100%; }
-    .no-margin-bottom { margin-bottom: 0; }
-    .center-text { text-align: center; }
-    .text-right { text-align: right; }
-    .text-left { text-align: left; }
+    .full-height {
+        flex: 1; /* Remplit toute la hauteur disponible de la colonne */
+    }
 
-    /* Styles des inputs et labels */
+    .result-card-flex {
+        flex: 1; /* Le bloc blanc s'étire pour s'aligner avec le bloc de gauche */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* Espace le contenu proprement */
+    }
+
+    /* Utilitaires */
     .card-title { margin-top:0; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 25px; }
     .card-subtitle { margin: 0; font-size: 1.1em; text-transform: uppercase; color: #666; }
-
     .input-simu { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1em; color: #333; }
     .input-group-btn { display: flex; align-items: center; gap: 15px; }
     .input-center { width: 60px; text-align: center; border: 1px solid #ddd; border-radius: 5px; padding: 5px; font-size: 1.1em; }
-
     .range-simu { width: 100%; accent-color: var(--couleur-tertiaire); margin: 10px 0; }
     .range-labels { display: flex; justify-content: space-between; font-size: 0.9em; color: #666; }
-
     .white-label { color: white; font-size: 1.1em; display: block; margin-bottom: 15px; }
     .white-range { accent-color: white; }
     .white-opacity { opacity: 0.7; color: white; }
-
-    /* Couleurs et Textes */
     .bold { font-weight: bold; }
     .green { color: #1E8E3E; }
     .green-color { color: #1E8E3E; }
@@ -391,37 +371,29 @@
     .tertiaire-color { color: var(--couleur-tertiaire); }
     .dark-blue { color: #1C3047; }
     .main-color { color: var(--couleur-principale); }
-
-    .dark-card { background: #1C3047; color: white; border: none; }
-
-    /* Résultats Big sizes */
+    .dark-card { background: #1C3047; color: white; border: none; margin-bottom: 0; } /* Reset margin car géré par le gap */
     .age-display-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .big-age { font-size: 2.5em; font-weight: 800; }
     .big-diviseur { font-size: 1.5em; display: block; }
-
     .main-pension-group { margin: 20px 0; }
     .huge-pension { font-size: 3.5em; font-weight: 800; }
     .per-month { font-size: 1.2em; }
-
-    /* Details Box */
     .details-box { background: #f9f9f9; padding: 15px; border-radius: 10px; font-size: 0.9em; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
     .divider { border-top: 1px solid #ddd; margin: 10px 0; }
     .badge-min { background: #FFF5F5; color: #C33037; padding: 5px; border-radius: 5px; text-align: center; margin: 10px 0; font-size: 0.85em; border: 1px solid #f5c6cb; }
 
-    /* Boutons Sociaux & Action */
     .action-card { padding: 20px; text-align: center; }
     .social-buttons-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-
-    .btn-social {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 45px; height: 45px; border-radius: 50%; color: white;
-        text-decoration: none; font-size: 1.2em; transition: transform 0.2s; border: none; cursor: pointer;
-    }
+    .btn-social { display: inline-flex; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; color: white; text-decoration: none; font-size: 1.2em; transition: transform 0.2s; border: none; cursor: pointer; }
     .btn-social:hover { transform: scale(1.1); filter: brightness(1.1); }
     .btn-social.fb { background: #1877F2; }
     .btn-social.x { background: #000; }
     .btn-social.pdf { background: #C33037; width: auto; padding: 0 20px; border-radius: 8px; font-size: 1em; gap: 8px; height: 45px; }
+
+    @media (max-width: 900px) {
+        .simu-grid { grid-template-columns: 1fr; }
+    }
 </style>
 
 {% endblock content %}

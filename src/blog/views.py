@@ -235,54 +235,40 @@ class CategorieArticleListView(ListView):
     Vue pour afficher tous les articles (publiés)
     d'une catégorie spécifique.
     """
-    model = Article  # On liste toujours des Articles...
-
+    model = Article
     template_name = 'blog/categorie_list.html'
-
-    # On envoie les articles sous le même nom
     context_object_name = 'articles'
-
-    # On garde la même pagination
     paginate_by = settings.BLOG_ARTICLES_PAR_PAGE
 
     def get_queryset(self):
         """
-        On surcharge cette méthode pour filtrer les articles.
+        Filtre les articles par catégorie et gère le cas spécial 'programme'.
         """
-        # 1. On récupère la catégorie depuis l'URL
-        # get_object_or_404 assure la sécurité : si le slug est faux, ça renvoie une erreur 404.
+        # 1. On récupère la catégorie et on la stocke dans self.categorie
+        # (C'est indispensable pour que get_context_data puisse la récupérer ensuite)
         self.categorie = get_object_or_404(Categorie, slug=self.kwargs['slug_categorie'])
 
-        # 2. On crée la liste de base : Articles de cette catégorie ET Publiés
+        # 2. Liste de base : Articles de la catégorie + Publiés
         queryset = Article.objects.filter(
             categories=self.categorie,
             statut=Article.Status.PUBLISHED
         )
 
-        # 3. Filtre SPÉCIAL pour la catégorie "programme"
+        # 3. Filtre spécial pour la page "Programme"
         if self.categorie.slug == 'programme':
-            # On ne garde que ceux qui ont une position (est_a_la_une n'est pas vide)
-            queryset = queryset.filter(est_a_la_une__isnull=False)
-            # On les trie par ordre de position (1, 2, 3...)
-            queryset = queryset.order_by('est_a_la_une')
+            # On ne garde que ceux qui ont une position définie et on trie
+            queryset = queryset.filter(est_a_la_une__isnull=False).order_by('est_a_la_une')
 
-        # 4. On renvoie le résultat final
         return queryset
 
     def get_context_data(self, **kwargs):
         """
-        Enrichit le contexte pour envoyer des données supplémentaires au template.
+        C'est cette méthode qui envoie la variable 'categorie' au template HTML.
+        Sans elle, le titre reste vide !
         """
         context = super().get_context_data(**kwargs)
-
-        # --- LOGIQUE POUR LA GRILLE BENTO & CARROUSEL ---
-        # On récupère TOUS les articles publiés qui ont une position "à la une" définie.
-        # On les trie par ordre de position (1, 2, 3...)
-        context['articles_une'] = Article.objects.filter(
-            statut=Article.Status.PUBLISHED,
-            est_a_la_une__isnull=False
-        ).order_by('est_a_la_une')
-
+        # On passe l'objet catégorie (sauvegardé plus haut) au template
+        context['categorie'] = self.categorie
         return context
 
 
