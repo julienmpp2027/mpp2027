@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Coût du Programme - MPP 2027{% endblock title %}
+
+{% block content %}
+
+<div class="profile-header-card">
+    <div class="profile-header-content">
+        <div class="profile-avatar-xl default" style="background: var(--couleur-tertiaire); border: 2px solid white;">
+            <i class="fas fa-calculator"></i>
+        </div>
+        <div class="profile-info">
+            <h1 class="profile-name">Simulateur des Coûts</h1>
+            <p class="profile-meta">
+                Évaluez l'investissement social du programme. Ajustez les montants pour voir l'impact budgétaire immédiat.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container simu-container" style="max-width: 1400px; margin: 0 auto 60px;">
+
+    <div class="simu-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+
+        <div class="simu-col-left">
+            <div class="dashboard-card full-height">
+                <h3 class="card-title" style="color: var(--couleur-principale);">
+                    <i class="fas fa-sliders-h"></i> Montants du RDC
+                </h3>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 0.9em; font-weight: 700; color: #555;">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn-action red" style="width: 100%; border: none; cursor: pointer; margin-top: 20px;">
+                        <i class="fas fa-sync-alt"></i> Recalculer le Coût
+                    </button>
+                </form>
+
+                <div class="info-box" style="margin-top: 20px; font-size: 0.85em;">
+                    <i class="fas fa-info-circle"></i> Ces montants sont mensuels et nets pour le citoyen.
+                </div>
+            </div>
+        </div>
+
+        <div class="simu-col-right">
+
+            <div class="dashboard-card" style="text-align: center; padding: 30px; border-left: 10px solid #C33037;">
+
+                <h2 style="margin: 0; color: #666; font-size: 1.2em; text-transform: uppercase;">Coût Total Brut du Programme</h2>
+
+                <div style="font-size: 4em; font-weight: 800; margin: 10px 0; color: #C33037;">
+                    {{ total_depenses }} Mds €
+                </div>
+
+                <p style="color: #888; margin: 0;">
+                    Ce montant correspond à l'investissement social brut, avant déduction des économies et recettes.
+                </p>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title" style="color: #C33037;">
+                    <i class="fas fa-chart-pie"></i> Répartition par Poste
+                </h3>
+                <ul class="budget-list">
+                    <li>
+                        <span><i class="fas fa-user-tie"></i> RDC Actifs</span>
+                        <strong>{{ couts.actifs|floatformat:1 }} Mds €</strong>
+                    </li>
+                    <li>
+                        <span><i class="fas fa-child"></i> RDC Enfants</span>
+                        <strong>{{ couts.enfants|floatformat:1 }} Mds €</strong>
+                    </li>
+                    <li>
+                        <span><i class="fas fa-umbrella-beach"></i> RDC Retraités (Bonus)</span>
+                        <strong>{{ couts.retraites|floatformat:1 }} Mds €</strong>
+                    </li>
+                    <li>
+                        <span><i class="fas fa-graduation-cap"></i> RDC Jeunes & Étudiants</span>
+                        <strong>{{ couts.etudiants|floatformat:1 }} Mds €</strong>
+                    </li>
+                    <li>
+                        <span><i class="fas fa-heart"></i> Solidarité (Handicap / Parent Isolé)</span>
+                        <strong>{{ couts.handicap|add:couts.parents_isoles|floatformat:1 }} Mds €</strong>
+                    </li>
+                    <li style="border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px; background: #FFF5F5;">
+                        <span style="color: #C33037;">Filet de Sécurité "Zéro Perdant"</span>
+                        <strong style="color: #C33037;">{{ couts.filet_zero_perdant }} Mds €</strong>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .budget-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .budget-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 10px;
+        border-bottom: 1px solid #eee;
+        font-size: 1em;
+    }
+    .budget-list li:last-child {
+        border-bottom: none;
+    }
+    .input-simu {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1.1em;
+        color: #333;
+    }
+
+    @media (max-width: 900px) {
+        .simu-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+{% endblock content %}
