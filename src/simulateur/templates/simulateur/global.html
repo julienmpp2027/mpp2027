@@ -1,136 +1,536 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Coût du Programme - MPP 2027{% endblock title %}
+{% block title %}Budget de la Nation - MPP 2027{% endblock title %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="profile-header-card">
     <div class="profile-header-content">
-        <div class="profile-avatar-xl default" style="background: var(--couleur-tertiaire); border: 2px solid white;">
-            <i class="fas fa-calculator"></i>
+        <div class="profile-avatar-xl default" style="background: #1C3047; border: 2px solid white;">
+            <i class="fas fa-balance-scale"></i>
         </div>
         <div class="profile-info">
-            <h1 class="profile-name">Simulateur des Coûts</h1>
+            <h1 class="profile-name">Le Cockpit Budgétaire</h1>
             <p class="profile-meta">
-                Évaluez l'investissement social du programme. Ajustez les montants pour voir l'impact budgétaire immédiat.
+                Pilotez le budget de la France. Ajustez les paramètres pour voir l'impact immédiat sur les finances publiques.
             </p>
         </div>
     </div>
 </div>
 
-<div class="container simu-container" style="max-width: 1400px; margin: 0 auto 60px;">
+<div class="container simu-container">
 
-    <div class="simu-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+    <form method="POST">
+        {% csrf_token %}
 
-        <div class="simu-col-left">
-            <div class="dashboard-card full-height">
-                <h3 class="card-title" style="color: var(--couleur-principale);">
-                    <i class="fas fa-sliders-h"></i> Montants du RDC
-                </h3>
-
-                <form method="POST">
-                    {% csrf_token %}
-
-                    {% for field in form %}
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="font-size: 0.9em; font-weight: 700; color: #555;">{{ field.label }}</label>
-                        {{ field }}
+        <details class="simu-accordion" open>
+            <summary class="simu-summary">
+                <div class="summary-left">
+                    <span class="chapter-badge">Chap 1</span>
+                    <h3 class="chapter-title">Le Revenu de Droit Commun (Dépenses)</h3>
+                </div>
+                <div class="summary-right">
+                    <div class="cost-group">
+                        <span class="cost-label">Coût Global :</span>
+                        <span class="cost-value negative">- {{ res_rdc.total }} Mds €</span>
                     </div>
-                    {% endfor %}
-
-                    <button type="submit" class="btn-action red" style="width: 100%; border: none; cursor: pointer; margin-top: 20px;">
-                        <i class="fas fa-sync-alt"></i> Recalculer le Coût
-                    </button>
-                </form>
-
-                <div class="info-box" style="margin-top: 20px; font-size: 0.85em;">
-                    <i class="fas fa-info-circle"></i> Ces montants sont mensuels et nets pour le citoyen.
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+            </summary>
+            <div class="simu-content">
+                <div class="simu-grid-internal">
+                    <div class="inputs-column">
+                        <details class="demo-details">
+                            <summary><i class="fas fa-users"></i> Voir les hypothèses démographiques</summary>
+                            <ul class="demo-list">
+                                <li class="pop-total-row"><strong>Population Totale :</strong> <strong>{{ demo.POPULATION_TOTALE|floatformat:0 }}</strong></li>
+                                <li class="divider"></li>
+                                <li><strong>Actifs éligibles :</strong> {{ demo.NB_ADULTES_ELIGIBLES|floatformat:0 }}</li>
+                                <li><strong>Enfants :</strong> {{ demo.NB_ENFANTS|floatformat:0 }}</li>
+                                <li><strong>Retraités :</strong> {{ demo.NB_RETRAITES|floatformat:0 }}</li>
+                                <li><strong>Étudiants :</strong> {{ demo.NB_ETUDIANTS|floatformat:0 }}</li>
+                                <li><strong>Parents Isolés :</strong> {{ demo.NB_PARENTS_ISOLES|floatformat:0 }}</li>
+                                <li><strong>Handicap :</strong> {{ demo.NB_HANDICAPES|floatformat:0 }}</li>
+                            </ul>
+                        </details>
+                        <h4 class="sub-title"><i class="fas fa-sliders-h"></i> Paramètres mensuels (Nets)</h4>
+                        <div class="input-row"><label>{{ form_rdc.rdc_actif.label }}</label><div class="input-wrapper">{{ form_rdc.rdc_actif }} <span>€</span></div></div>
+                        <div class="input-row"><label>{{ form_rdc.rdc_enfant.label }}</label><div class="input-wrapper">{{ form_rdc.rdc_enfant }} <span>€</span></div></div>
+                        <div class="input-row"><label>{{ form_rdc.rdc_retraite.label }}</label><div class="input-wrapper">{{ form_rdc.rdc_retraite }} <span>€</span></div></div>
+                        <div class="input-row"><label>{{ form_rdc.rdc_etudiant.label }}</label><div class="input-wrapper">{{ form_rdc.rdc_etudiant }} <span>€</span></div></div>
+                        <div class="input-row"><label>{{ form_rdc.rdc_parent_isole.label }}</label><div class="input-wrapper">{{ form_rdc.rdc_parent_isole }} <span>€</span></div></div>
+                        <div class="input-row"><label>{{ form_rdc.rdc_handicap.label }}</label><div class="input-wrapper">{{ form_rdc.rdc_handicap }} <span>€</span></div></div>
+                        <div class="separator-dashed"></div>
+                        <div class="input-row special-row"><label class="help-tooltip" title="Budget transitoire">{{ form_rdc.filet_securite.label }} <i class="far fa-question-circle"></i></label><div class="input-wrapper">{{ form_rdc.filet_securite }} <span>Md€</span></div></div>
+                        <div style="margin-top: 25px; text-align: right;"><button type="submit" name="submit_rdc" class="btn-action red small"><i class="fas fa-sync-alt"></i> Recalculer</button></div>
+                    </div>
+                    <div class="results-column">
+                        <h4 class="sub-title"><i class="fas fa-file-invoice-dollar"></i> Facture Détaillée (Annuel)</h4>
+                        <div class="bill-container">
+                            <ul class="bill-list">
+                                <li><span>Actifs</span><span>{{ res_rdc.details.actifs|floatformat:1 }} Md€</span></li>
+                                <li><span>Enfants</span><span>{{ res_rdc.details.enfants|floatformat:1 }} Md€</span></li>
+                                <li><span>Retraités</span><span>{{ res_rdc.details.retraites|floatformat:1 }} Md€</span></li>
+                                <li><span>Étudiants</span><span>{{ res_rdc.details.etudiants|floatformat:1 }} Md€</span></li>
+                                <li><span>Parents Isolés</span><span>{{ res_rdc.details.isoles|floatformat:1 }} Md€</span></li>
+                                <li><span>Handicap</span><span>{{ res_rdc.details.handicap|floatformat:1 }} Md€</span></li>
+                                <li class="special"><span>Filet Sécurité</span><span>{{ res_rdc.details.filet_securite }} Md€</span></li>
+                            </ul>
+                            <div class="bill-total"><span>TOTAL RDC</span><span>{{ res_rdc.total }} Md€</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </details>
 
-        <div class="simu-col-right">
-
-            <div class="dashboard-card" style="text-align: center; padding: 30px; border-left: 10px solid #C33037;">
-
-                <h2 style="margin: 0; color: #666; font-size: 1.2em; text-transform: uppercase;">Coût Total Brut du Programme</h2>
-
-                <div style="font-size: 4em; font-weight: 800; margin: 10px 0; color: #C33037;">
-                    {{ total_depenses }} Mds €
+        <details class="simu-accordion">
+            <summary class="simu-summary">
+                <div class="summary-left">
+                    <span class="chapter-badge">Chap 2</span>
+                    <h3 class="chapter-title">Le Coût du Travail (Recettes)</h3>
                 </div>
+                <div class="summary-right">
+                    <div class="cost-group">
+                        <span class="cost-label">Impact sur Recettes :</span>
+                        <span class="cost-value {% if res_charges.total < 0 %}negative{% else %}positive{% endif %}">
+                            {{ res_charges.total }} Mds €
+                        </span>
+                    </div>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+            </summary>
 
-                <p style="color: #888; margin: 0;">
-                    Ce montant correspond à l'investissement social brut, avant déduction des économies et recettes.
-                </p>
+            <div class="simu-content">
+                <div class="simu-grid-internal">
+
+                    <div class="inputs-column">
+                        <h4 class="sub-title"><i class="fas fa-sliders-h"></i> Le Barème Marginal</h4>
+                        <p style="font-size:0.85em; color:#666; margin-bottom:15px;">
+                            Système par tranches (comme l'impôt sur le revenu) appliqué à chaque bulletin de salaire.
+                        </p>
+
+                       <div class="bracket-box t1">
+                            <label>Tranche 1 (Socle)</label>
+                            <div class="input-row">
+                                <span>Taux :</span>
+                                <div class="input-wrapper">{{ form_charges.t1_taux }} <span>%</span></div>
+                            </div>
+                            <div class="input-row">
+                                <span>Jusqu'à :</span>
+                                <div class="slider-container">
+                                    <input type="range" min="1" max="2" step="0.1"
+                                           value="{{ form_charges.t1_limit.value|default:1.2 }}"
+                                           class="range-slider"
+                                           oninput="syncInput(this, 'id_charges-t1_limit'); updateChart();">
+                                    <div class="input-wrapper">{{ form_charges.t1_limit }} <span>SMIC</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bracket-box t2">
+                            <label>Tranche 2 (Solidarité)</label>
+                            <div class="input-row">
+                                <span>Taux :</span>
+                                <div class="input-wrapper">{{ form_charges.t2_taux }} <span>%</span></div>
+                            </div>
+                            <div class="input-row">
+                                <span>Jusqu'à :</span>
+                                <div class="slider-container">
+                                    <input type="range" min="2" max="5" step="0.1"
+                                           value="{{ form_charges.t2_limit.value|default:2.5 }}"
+                                           class="range-slider"
+                                           oninput="syncInput(this, 'id_charges-t2_limit'); updateChart();">
+                                    <div class="input-wrapper">{{ form_charges.t2_limit }} <span>SMIC</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bracket-box t3">
+                            <label>Tranche 3 (Normal)</label>
+                            <div class="input-row"><span>Taux :</span><div class="input-wrapper">{{ form_charges.t3_taux }} <span>%</span></div></div>
+                        </div>
+
+                        <div style="margin-top: 25px; text-align: right;">
+                            <button type="submit" name="submit_charges" class="btn-action red small"><i class="fas fa-sync-alt"></i> Recalculer</button>
+                        </div>
+                    </div>
+
+                    <div class="results-column">
+                        <h4 class="sub-title"><i class="fas fa-chart-line"></i> Comparatif Coût Employeur</h4>
+
+                        <div class="chart-container" style="position: relative; height:250px; width:100%; margin-bottom:20px;">
+                            <canvas id="chargesChart"></canvas>
+                        </div>
+
+                        <div class="bill-container">
+                            <ul class="bill-list">
+                                <li style="color:#888;">
+                                    <span>Recettes Théoriques (Taux 42%)</span>
+                                    <span>{{ res_charges.recettes_theoriques }} Md€</span>
+                                </li>
+                                <li style="color:#C33037;">
+                                    <span>- Allègements Actuels</span>
+                                    <span>- {{ res_charges.allegements_actuels }} Md€</span>
+                                </li>
+                                <li class="divider-solid"></li>
+                                <li style="font-weight:bold; color:#1C3047; background:#f0f4f8; margin:0 -10px; padding:10px;">
+                                    <span>= Recettes RÉELLES (2024)</span>
+                                    <span>{{ res_charges.recettes_actuelles }} Md€</span>
+                                </li>
+                                <li style="margin-top:15px; font-size:1.1em;">
+                                    <span>Recettes MPP 2027</span>
+                                    <span style="font-weight:800; color:var(--couleur-tertiaire);">{{ res_charges.recettes_mpp }} Md€</span>
+                                </li>
+                            </ul>
+                            <div class="bill-total" style="font-size:1.1em;">
+                                <span>Impact Budgétaire</span>
+                                <span class="{% if res_charges.total < 0 %}negative{% else %}positive{% endif %}">
+                                    {{ res_charges.total }} Md€
+                                </span>
+                            </div>
+                        </div>
+
+                        <h4 class="sub-title" style="margin-top:30px;"><i class="fas fa-user-tie"></i> Impact sur vos Salariés</h4>
+
+                        <div style="background: linear-gradient(135deg, #1E8E3E 0%, #2ecc71 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display:flex; align-items:center; justify-content:space-between; box-shadow: 0 4px 10px rgba(30, 142, 62, 0.2);">
+                            <div>
+                                <strong style="font-size:1.1em; display:block;">Dégrèvement Max / Salarié</strong>
+                                <span style="font-size:0.85em; opacity:0.9;">Avantage compétitif annuel (Cadres & Dirigeants)</span>
+                            </div>
+                            <div style="font-size:1.8em; font-weight:800;">
+                                {{ res_charges.gain_max_annuel|default:"0" }} €
+                            </div>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="profils-table">
+                                <thead>
+                                    <tr>
+                                        <th>Profil</th>
+                                        <th class="text-right">Brut</th>
+                                        <th class="text-right">Coût Actuel</th>
+                                        <th class="text-right">Coût MPP</th>
+                                        <th class="text-right">Taux Eff.</th>
+                                        <th class="text-right">Gain</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in res_charges.profils %}
+                                    <tr>
+                                        <td><strong>{{ p.label }}</strong></td>
+                                        <td class="text-right">{{ p.salaire_brut }}€</td>
+                                        <td class="text-right text-muted">{{ p.cout_actuel }}€</td>
+                                        <td class="text-right bold color-mpp">{{ p.cout_mpp }}€</td>
+                                        <td class="text-right small">{{ p.taux_eff }}%</td>
+                                        <td class="text-right {% if p.gain > 0 %}positive{% else %}negative{% endif %} bold">
+                                            {% if p.gain > 0 %}+{% endif %}{{ p.gain }}€
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
+        </details>
 
-            <div class="dashboard-card">
-                <h3 class="card-title" style="color: #C33037;">
-                    <i class="fas fa-chart-pie"></i> Répartition par Poste
-                </h3>
-                <ul class="budget-list">
-                    <li>
-                        <span><i class="fas fa-user-tie"></i> RDC Actifs</span>
-                        <strong>{{ couts.actifs|floatformat:1 }} Mds €</strong>
-                    </li>
-                    <li>
-                        <span><i class="fas fa-child"></i> RDC Enfants</span>
-                        <strong>{{ couts.enfants|floatformat:1 }} Mds €</strong>
-                    </li>
-                    <li>
-                        <span><i class="fas fa-umbrella-beach"></i> RDC Retraités (Bonus)</span>
-                        <strong>{{ couts.retraites|floatformat:1 }} Mds €</strong>
-                    </li>
-                    <li>
-                        <span><i class="fas fa-graduation-cap"></i> RDC Jeunes & Étudiants</span>
-                        <strong>{{ couts.etudiants|floatformat:1 }} Mds €</strong>
-                    </li>
-                    <li>
-                        <span><i class="fas fa-heart"></i> Solidarité (Handicap / Parent Isolé)</span>
-                        <strong>{{ couts.handicap|add:couts.parents_isoles|floatformat:1 }} Mds €</strong>
-                    </li>
-                    <li style="border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 5px; background: #FFF5F5;">
-                        <span style="color: #C33037;">Filet de Sécurité "Zéro Perdant"</span>
-                        <strong style="color: #C33037;">{{ couts.filet_zero_perdant }} Mds €</strong>
-                    </li>
-                </ul>
+        <details class="simu-accordion">
+            <summary class="simu-summary">
+                <div class="summary-left">
+                    <span class="chapter-badge">Chap 2+</span>
+                    <h3 class="chapter-title">TVA Stratégique (Recettes)</h3>
+                </div>
+                <div class="summary-right">
+                    <div class="cost-group">
+                        <span class="cost-label">Gain Net État :</span>
+                        <span class="cost-value positive">
+                            + {{ res_tva.total }} Mds €
+                        </span>
+                    </div>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+            </summary>
+
+            <div class="simu-content">
+                <div class="simu-grid-internal">
+
+                    <div class="inputs-column">
+                        <h4 class="sub-title"><i class="fas fa-sliders-h"></i> Nouveaux Taux Cibles</h4>
+
+                        <div class="input-row">
+                            <label>Taux Normal (Actuel 20%)</label>
+                            <div class="slider-container">
+                                <input type="range" min="15" max="30" step="1"
+                                       value="{{ form_tva.taux_normal.value|default:26 }}"
+                                       class="range-slider"
+                                       oninput="syncInput(this, 'id_tva-taux_normal')">
+                                <div class="input-wrapper">{{ form_tva.taux_normal }} <span>%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <label>Taux Réduit (Actuel 5.5%)</label>
+                            <div class="slider-container">
+                                <input type="range" min="0" max="15" step="0.5"
+                                       value="{{ form_tva.taux_reduit.value|default:10 }}"
+                                       class="range-slider"
+                                       oninput="syncInput(this, 'id_tva-taux_reduit')">
+                                <div class="input-wrapper">{{ form_tva.taux_reduit }} <span>%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="separator-dashed"></div>
+
+                        <h4 class="sub-title" style="font-size:1em; margin-bottom:15px;">Suppression des Niches (10% -> Normal)</h4>
+
+                        <div class="checkbox-row">
+                            {{ form_tva.suppress_restau }}
+                            <label for="{{ form_tva.suppress_restau.id_for_label }}">
+                                Restauration
+                                <span class="gain-badge">(Gain: +{{ res_tva.cout_niche_restau }} Md€)</span>
+                            </label>
+                        </div>
+                        <div class="checkbox-row">
+                            {{ form_tva.suppress_batiment }}
+                            <label for="{{ form_tva.suppress_batiment.id_for_label }}">
+                                Bâtiment / Rénov
+                                <span class="gain-badge">(Gain: +{{ res_tva.cout_niche_bat }} Md€)</span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top: 25px; text-align: right;">
+                            <button type="submit" name="submit_tva" class="btn-action red small">
+                                <i class="fas fa-sync-alt"></i> Recalculer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="results-column">
+
+                        <div class="kpi-box">
+                            <div class="kpi-item">
+                                <span class="kpi-label">Recettes Actuelles</span>
+                                <span class="kpi-value text-muted">{{ res_tva.recette_actuelle }} Md€</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-label">Nouvelles Recettes</span>
+                                <span class="kpi-value positive">{{ res_tva.recette_mpp }} Md€</span>
+                            </div>
+                            <div class="kpi-item">
+                                <span class="kpi-label">Valeur 1 pt TVA</span>
+                                <span class="kpi-value small">~ {{ res_tva.point_tva }} Md€</span>
+                            </div>
+                        </div>
+
+                        <h4 class="sub-title" style="margin-top:30px;">
+                            <i class="fas fa-shopping-cart"></i> Impact Pouvoir d'Achat
+                        </h4>
+                        <div style="overflow-x: auto;">
+                            <table class="profils-table">
+                                <thead>
+                                    <tr>
+                                        <th>Profil</th>
+                                        <th class="text-right">Revenu Net</th>
+                                        <th class="text-right">Surcoût Conso</th>
+                                        <th class="text-right">% Revenu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in res_tva.profils %}
+                                    <tr>
+                                        <td><strong>{{ p.nom }}</strong></td>
+                                        <td class="text-right">{{ p.net }} €</td>
+                                        <td class="text-right negative bold">- {{ p.surcout }} €/mois</td>
+                                        <td class="text-right small">{{ p.part_revenu }} %</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p style="font-size:0.8em; color:#777; margin-top:10px; font-style:italic;">
+                            * Le surcoût est calculé sur le panier de consommation moyen. Il est compensé par la hausse du RDC (voir Chap 1) et la baisse des charges (Chap 2) pour les actifs.
+                        </p>
+
+                    </div>
+
+                </div>
             </div>
+        </details>
 
-        </div>
-    </div>
+    </form>
+
 </div>
 
-<style>
-    .budget-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .budget-list li {
-        display: flex;
-        justify-content: space-between;
-        padding: 12px 10px;
-        border-bottom: 1px solid #eee;
-        font-size: 1em;
-    }
-    .budget-list li:last-child {
-        border-bottom: none;
-    }
-    .input-simu {
-        width: 100%;
-        padding: 10px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-size: 1.1em;
-        color: #333;
+<script>
+    function syncInput(slider, targetId) { document.getElementById(targetId).value = slider.value; }
+
+    let myChart = null;
+
+    function initChart() {
+        const ctx = document.getElementById('chargesChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [1, 1.2, 1.4, 1.6, 2.0, 2.5, 3.0, 4.0, 5.0, 7.0].map(x => x + " SMIC"),
+                datasets: [
+                    {
+                        label: 'Système Actuel',
+                        data: [],
+                        borderColor: '#1C3047', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, tension: 0.4
+                    },
+                    {
+                        label: 'MPP 2027',
+                        data: [],
+                        borderColor: '#C33037', borderWidth: 3, backgroundColor: 'rgba(195, 48, 55, 0.1)', fill: true, pointRadius: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + Math.round(context.raw).toLocaleString() + ' €'; } } },
+                    legend: { position: 'bottom' }
+                },
+                scales: { y: { title: { display: true, text: 'Coût Total Employeur (€)' }, grid: { color: '#f0f0f0' } } }
+            }
+        });
+        updateChart();
     }
 
-    @media (max-width: 900px) {
-        .simu-grid {
-            grid-template-columns: 1fr !important;
-        }
+    function updateChart() {
+        if (!myChart) return;
+
+        const smic = 1800; // Base 2025
+
+        // Récupération sécurisée des valeurs (avec valeurs par défaut CORRIGEES)
+        const t1_lim = parseFloat(document.getElementById('id_charges-t1_limit').value) || 1.2;
+        const t1_rate = (parseFloat(document.getElementById('id_charges-t1_taux').value) || 6) / 100;
+
+        const t2_lim = parseFloat(document.getElementById('id_charges-t2_limit').value) || 2.5;
+        const t2_rate = (parseFloat(document.getElementById('id_charges-t2_taux').value) || 30) / 100;
+
+        const t3_rate = (parseFloat(document.getElementById('id_charges-t3_taux').value) || 42) / 100;
+
+        const xMultipliers = [1, 1.2, 1.4, 1.6, 2.0, 2.5, 3.0, 4.0, 5.0, 7.0];
+        const dataActuel = [];
+        const dataMPP = [];
+
+        xMultipliers.forEach(mult => {
+            let brut = mult * smic;
+            // Actuel (Approx)
+            let taux_act = 0.42;
+            if(mult <= 1) taux_act = 0.04;
+            else if(mult <= 1.6) taux_act = 0.04 + (0.28 * (brut - smic)/(0.6*smic));
+            else if(mult <= 2.5) taux_act = 0.32 + (0.10 * (brut - 1.6*smic)/(0.9*smic));
+            dataActuel.push(brut * (1 + taux_act));
+
+            // MPP (Marginal)
+            let charges = 0;
+            let base_t1 = Math.min(brut, t1_lim * smic);
+            charges += base_t1 * t1_rate;
+            if (brut > t1_lim * smic) {
+                let base_t2 = Math.min(brut, t2_lim * smic) - (t1_lim * smic);
+                charges += base_t2 * t2_rate;
+            }
+            if (brut > t2_lim * smic) {
+                let base_t3 = brut - (t2_lim * smic);
+                charges += base_t3 * t3_rate;
+            }
+            dataMPP.push(brut + charges);
+        });
+
+        myChart.data.datasets[0].data = dataActuel;
+        myChart.data.datasets[1].data = dataMPP;
+        myChart.update();
     }
+
+    document.addEventListener('DOMContentLoaded', initChart);
+</script>
+
+<style>
+    /* ... (Styles CSS identiques au précédent + ajout divider-solid) ... */
+    .simu-container { max-width: 1200px; margin: 0 auto 80px; padding: 0 20px; }
+    details.simu-accordion { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px; border: 1px solid rgba(0,0,0,0.08); overflow: hidden; }
+    summary.simu-summary { padding: 25px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: white; list-style: none; transition: background 0.2s; }
+    summary.simu-summary:hover { background: #fcfcfc; }
+    summary.simu-summary::-webkit-details-marker { display: none; }
+    .summary-left, .summary-right { display: flex; align-items: center; gap: 20px; }
+    .chapter-badge { background: var(--couleur-principale); color: white; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
+    .chapter-title { margin: 0; font-size: 1.3em; color: #333; font-weight: 700; }
+    .cost-group { text-align: right; line-height: 1.2; }
+    .cost-label { color: #888; font-size: 0.85em; text-transform: uppercase; font-weight: 600; display: block; }
+    .cost-value { font-weight: 800; font-size: 1.4em; }
+    .cost-value.negative { color: #C33037; }
+    .cost-value.positive { color: #1E8E3E; }
+    .arrow { transition: transform 0.3s; color: #ccc; font-size: 1.2em; }
+    details[open] summary .arrow { transform: rotate(180deg); }
+    .simu-content { border-top: 1px solid #eee; background: #fdfdfd; padding: 40px; }
+    .simu-grid-internal { display: grid; grid-template-columns: 1fr 1.2fr; gap: 50px; }
+    .sub-title { margin-top: 0; color: var(--couleur-principale); border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.1em; text-transform: uppercase; letter-spacing: 0.5px; }
+    .demo-details { margin-bottom: 30px; background: #F0F4F8; border-radius: 8px; border: 1px solid #dae6f1; font-size: 0.9em; }
+    .demo-details summary { padding: 12px 15px; cursor: pointer; color: #1C3047; font-weight: 600; outline: none; display: flex; align-items: center; gap: 10px; }
+    .demo-details[open] summary { border-bottom: 1px solid #dae6f1; }
+    .demo-list { list-style: none; padding: 15px; margin: 0; color: #555; }
+    .demo-list li { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .demo-list li.divider { border-bottom: 1px solid #dae6f1; margin: 8px 0; }
+    .pop-total-row { color: #1C3047; font-size: 1.05em; margin-bottom: 8px !important; }
+    .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .input-row label { font-size: 0.95em; color: #555; font-weight: 600; }
+    .input-wrapper { display: flex; align-items: center; gap: 8px; }
+    .simu-input { width: 90px; text-align: right; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; color: #333; font-family: inherit; font-size: 1em; }
+    .simu-input:focus { border-color: var(--couleur-principale); outline: none; }
+    .separator-dashed { border-top: 1px dashed #ccc; margin: 20px 0; }
+    .special-row label { color: #C33037; }
+    .bill-container { background: white; border: 1px solid #eee; border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+    .bill-list { list-style: none; padding: 0; margin: 0; }
+    .bill-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.95em; color: #444; }
+    .bill-list li.divider-solid { border-bottom: 2px solid #ccc; margin: 10px 0; padding: 0; }
+    .bill-list li.special { color: #C33037; font-style: italic; background: #fff5f5; padding: 5px 10px; margin: 5px -10px; border-radius: 4px; }
+    .bill-total { margin-top: 20px; padding-top: 20px; border-top: 3px solid #1C3047; display: flex; justify-content: space-between; font-weight: 800; font-size: 1.4em; color: var(--couleur-principale); }
+    .bracket-box { background: white; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 15px; position: relative; overflow: hidden; }
+    .bracket-box.t1 { border-left: 4px solid #1E8E3E; }
+    .bracket-box.t2 { border-left: 4px solid #C33037; }
+    .bracket-box.t3 { border-left: 4px solid #1C3047; }
+    .bracket-box label { font-weight: 800; text-transform: uppercase; font-size: 0.8em; color: #888; display: block; margin-bottom: 10px; }
+    .slider-container { display: flex; flex-direction: column; width: 100%; align-items: flex-end; gap: 5px; }
+    .range-slider { width: 100%; accent-color: var(--couleur-principale); cursor: pointer; }
+    /* TABLEAU PROFILS */
+    .profils-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    .profils-table th { text-align: left; padding: 8px; border-bottom: 2px solid #eee; color: #888; font-weight: 600; font-size: 0.85em; text-transform: uppercase; }
+    .profils-table td { padding: 10px 8px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+    .profils-table tr:last-child td { border-bottom: none; }
+    .text-right { text-align: right; }
+    .text-muted { color: #999; }
+    .bold { font-weight: 700; }
+    .small { font-size: 0.85em; color: #666; }
+    .color-mpp { color: var(--couleur-principale); }
+    .positive { color: #1E8E3E; }
+    .negative { color: #C33037; }
+
+    /* Checkbox & Badges */
+    .checkbox-row {
+        display: flex; align-items: center; margin-bottom: 12px;
+    }
+    .simu-checkbox {
+        width: 18px; height: 18px; margin-right: 10px; accent-color: var(--couleur-principale); cursor: pointer;
+    }
+    .checkbox-row label {
+        font-size: 0.95em; cursor: pointer; color: #333;
+    }
+    .gain-badge {
+        font-size: 0.85em; color: #1E8E3E; font-weight: bold; margin-left: 5px;
+    }
+    .text-muted { color: #888; }
+
+
+    @media (max-width: 900px) { .simu-grid-internal { grid-template-columns: 1fr; gap: 30px; } summary.simu-summary { flex-direction: column; align-items: flex-start; gap: 15px; } .summary-right { width: 100%; justify-content: space-between; } .chapter-title { font-size: 1.1em; } }
+
+
 </style>
 
 {% endblock content %}

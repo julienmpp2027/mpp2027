@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from .regles_retraite import calculer_pension_complete, CONSTANTES
-from .forms import GlobalSimulationForm
-from .context_simulator import DEMOGRAPHIE, CONSTANTES_MPP
+from django import forms
+from .forms import SimulateurRDCForm, SimulateurChargesForm
+from .context_simulator import calculer_cout_rdc, calculer_charges_sociales, DEMOGRAPHIE
+
 
 def accueil(request):
     """Page hub qui liste les simulateurs disponibles"""
@@ -72,60 +74,87 @@ def api_calcul_pa(request):
 ########################################################################################################################
 
 
+from .forms import SimulateurRDCForm, SimulateurChargesForm, SimulateurTVAForm
+from .context_simulator import calculer_cout_rdc, calculer_charges_sociales, DEMOGRAPHIE, calculer_recettes_tva
+
+
 def simulateur_global(request):
-    """
-    Vue du Cockpit Budgétaire (Version 1 : Coûts uniquement).
-    Permet de modifier les paramètres du RDC et de voir l'impact sur la dépense publique.
-    """
-
-    # 1. Initialisation du formulaire
-    if request.method == 'POST':
-        form = GlobalSimulationForm(request.POST)
+    # --- GESTION DU CHAPITRE 1 (RDC) ---
+    # On regarde si le bouton "submit_rdc" a été cliqué
+    if 'submit_rdc' in request.POST:
+        form_rdc = SimulateurRDCForm(request.POST, prefix="rdc")
     else:
-        form = GlobalSimulationForm()
+        # Sinon, on charge le formulaire avec les valeurs par défaut (initial)
+        form_rdc = SimulateurRDCForm(prefix="rdc")
 
-    # 2. Récupération des valeurs (Formulaire OU Constantes par défaut)
-    if form.is_valid():
-        data = form.cleaned_data
+    data_rdc = {}
+    if form_rdc.is_valid():
+        data_rdc = form_rdc.cleaned_data
+
+    # Calcul (utilise les données du form OU les défauts si form vide)
+    res_rdc = calculer_cout_rdc(data_rdc)
+
+    # --- GESTION DU CHAPITRE 2 (CHARGES) ---
+    # On regarde si le bouton "submit_charges" a été cliqué
+    if 'submit_charges' in request.POST:
+        form_charges = SimulateurChargesForm(request.POST, prefix="charges")
     else:
-        # Valeurs par défaut du programme MPP 2027
-        data = {
-            'rdc_actif': CONSTANTES_MPP['RDC_ACTIF'],
-            'rdc_enfant': CONSTANTES_MPP['RDC_ENFANT'],
-            'rdc_retraite': CONSTANTES_MPP['RDC_RETRAITE_BONUS'],
-            'rdc_etudiant': CONSTANTES_MPP['RDC_ETUDIANT'],
-            'rdc_parent_isole': CONSTANTES_MPP['RDC_PARENT_ISOLE'],
-            'rdc_handicap': CONSTANTES_MPP['RDC_HANDICAP_TOTAL'],
-        }
+        # Sinon, on charge le formulaire par défaut (ce qui règle le problème d'affichage)
+        form_charges = SimulateurChargesForm(prefix="charges")
 
-    # 3. CALCUL DES DÉPENSES (En Milliards d'Euros)
+    data_charges = {}
+    if form_charges.is_valid():
+        data_charges = form_charges.cleaned_data
 
-    # Population cible Actifs (Adultes - Retraités - Etudiants)
-    nb_actifs_eligibles = DEMOGRAPHIE["NB_ADULTES_TOTAL"] - DEMOGRAPHIE["NB_RETRAITES"] - DEMOGRAPHIE["NB_ETUDIANTS"]
+    res_charges = calculer_charges_sociales(data_charges)
 
-    couts = {
-        'actifs': (nb_actifs_eligibles * data['rdc_actif'] * 12) / 1e9,
-        'enfants': (DEMOGRAPHIE["NB_ENFANTS"] * data['rdc_enfant'] * 12) / 1e9,
-        'retraites': (DEMOGRAPHIE["NB_RETRAITES"] * data['rdc_retraite'] * 12) / 1e9,
-        'etudiants': (DEMOGRAPHIE["NB_ETUDIANTS"] * data['rdc_etudiant'] * 12) / 1e9,
-
-        # Estimation : 2 millions de parents isolés
-        'parents_isoles': (2_000_000 * data['rdc_parent_isole'] * 12) / 1e9,
-
-        # Surcoût Handicap (Total - Base Actif) pour 1.2M de personnes
-        'handicap': (1_200_000 * (data['rdc_handicap'] - data['rdc_actif']) * 12) / 1e9,
-
-        # Le filet de sécurité (12 Mds)
-        'filet_zero_perdant': CONSTANTES_MPP['BUDGET_GARANTIE_ZERO_PERDANT']
+    context = {
+        'form_rdc': form_rdc,
+        'res_rdc': res_rdc,
+        'form_charges': form_charges,
+        'res_charges': res_charges,
+        'demo': DEMOGRAPHIE,
     }
 
-    total_depenses = sum(couts.values())
 
-    # Context envoyé au template (Pas de recettes, pas de solde)
+    # 2. CHARGES (Chapitre 2)
+    form_charges = SimulateurChargesForm(request.POST or None, prefix="charges")
+    data_charges = {}
+    if form_charges.is_valid(): data_charges = form_charges.cleaned_data
+    res_charges = calculer_charges_sociales(data_charges)
+
+    # Note : Pour les graphiques JS, on passera les valeurs par défaut au template
+    # pour qu'il puisse dessiner la courbe initiale.
+
     context = {
-        'form': form,
-        'couts': couts,
-        'total_depenses': round(total_depenses, 1),
+        'form_rdc': form_rdc,
+        'res_rdc': res_rdc,
+        'form_charges': form_charges,
+        'res_charges': res_charges,
+        'demo': DEMOGRAPHIE,
+    }
+
+
+    # 3. TVA STRATÉGIQUE (NOUVEAU)
+    if 'submit_tva' in request.POST:
+        form_tva = SimulateurTVAForm(request.POST, prefix="tva")
+    else:
+        form_tva = SimulateurTVAForm(prefix="tva")
+
+    data_tva = {}
+    if form_tva.is_valid():
+        data_tva = form_tva.cleaned_data
+
+    res_tva = calculer_recettes_tva(data_tva)
+
+    context = {
+        'form_rdc': form_rdc,
+        'res_rdc': res_rdc,
+        'form_charges': form_charges,
+        'res_charges': res_charges,
+        'form_tva': form_tva,  # Nouveau
+        'res_tva': res_tva,  # Nouveau
+        'demo': DEMOGRAPHIE,
     }
 
     return render(request, 'simulateur/global.html', context)
